@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ellevux - Pricing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { bg: '#000000', surface: '#0a0a0a', surface2: '#141414', border: '#1f1f1f', primary: '#ffffff', muted: '#888888', glow: '#333333' } } }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    body { background-color: #000000; color: #ffffff; font-family: 'Inter', sans-serif; margin: 0; min-height: 100vh; }
+    .glass-panel { background: rgba(10, 10, 10, 0.7); backdrop-filter: blur(20px); border: 1px solid #1f1f1f; }
+    .glow-bg { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(100px); opacity: 0.15; pointer-events: none; background: #8a2be2; z-index: -1; top: 0; left: 50%; transform: translateX(-50%); }
+    .bg-grid { background-size: 40px 40px; background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px); position: absolute; inset: 0; z-index: -2; mask-image: radial-gradient(circle at top, black, transparent 80%); }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="glow-bg"></div>
+  
+  <div class="max-w-7xl mx-auto pt-40 px-6 pb-20">
+    <div id="checkout-summary" class="hidden mb-12 p-6 border border-accent/30 bg-accent/5 rounded-xl text-center">
+       <p class="text-accent text-sm font-mono uppercase tracking-widest mb-2">Checkout Summary</p>
+       <h2 class="text-2xl font-bold">New Agent: <span id="pending-agent-name" class="text-primary italic">Bablu</span></h2>
+       <p class="text-muted mt-2">Select a plan below to activate your agent.</p>
+    </div>
+
+    <div class="text-center mb-16" id="pricing-header">
+       <h1 class="text-5xl font-bold tracking-tight mb-4">Simple, transparent pricing.</h1>
+       <p class="text-muted text-xl">No per-minute billing. No surprise charges.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+       <!-- Starter Plan -->
+       <div class="glass-panel p-8 rounded-xl border border-border flex flex-col">
+          <h3 class="text-xl font-bold mb-2">Starter</h3>
+          <p class="text-muted text-xs mb-6">For small service businesses.</p>
+          <div class="mb-8">
+             <span class="text-4xl font-bold tracking-tighter">$149</span><span class="text-muted">/mo</span>
+          </div>
+          <button onclick="handlePurchase('Starter', 149)" class="w-full bg-surface2 border border-border text-primary py-3 rounded font-bold hover:bg-[#222] transition-colors mb-8">Select Plan</button>
+          
+          <ul class="space-y-4 text-xs text-muted flex-1">
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> Voice Agent Only</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> Review Collector</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> SMS Integration</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> 300 minutes/month</li>
+          </ul>
+       </div>
+
+       <!-- Growth Plan -->
+       <div class="glass-panel p-8 rounded-xl border border-[#8a2be2]/50 relative overflow-hidden shadow-[0_0_30px_rgba(138,43,226,0.1)] flex flex-col">
+          <div class="absolute top-4 right-4 bg-[#8a2be2]/20 text-[#8a2be2] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#8a2be2]/50">POPULAR</div>
+          <h3 class="text-xl font-bold mb-2">Growth</h3>
+          <p class="text-muted text-xs mb-6">For growing service teams.</p>
+          <div class="mb-8">
+             <span class="text-4xl font-bold tracking-tighter">$299</span><span class="text-muted">/mo</span>
+          </div>
+          <button onclick="handlePurchase('Growth', 299)" class="w-full bg-primary text-black py-3 rounded font-bold hover:bg-gray-200 transition-colors mb-8">Select Plan</button>
+          
+          <ul class="space-y-4 text-xs text-muted flex-1">
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> Voice + Full SMS Agent</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> WhatsApp Inbound</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> Lead Qual & Follow-ups</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> Salesforce Sync</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> 750 minutes/month</li>
+          </ul>
+       </div>
+
+       <!-- Scale Plan -->
+       <div class="glass-panel p-8 rounded-xl border border-border flex flex-col">
+          <h3 class="text-xl font-bold mb-2">Scale</h3>
+          <p class="text-muted text-xs mb-6">For multi-location operations.</p>
+          <div class="mb-8">
+             <span class="text-4xl font-bold tracking-tighter">$499</span><span class="text-muted">/mo</span>
+          </div>
+          <button onclick="handlePurchase('Scale', 499)" class="w-full bg-surface2 border border-border text-primary py-3 rounded font-bold hover:bg-[#222] transition-colors mb-8">Select Plan</button>
+          
+          <ul class="space-y-4 text-xs text-muted flex-1">
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> Everything in Growth</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> Multi-Location Routing</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> HubSpot CRM Sync</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> Advanced Analytics</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> 2,000 minutes/month</li>
+          </ul>
+       </div>
+
+       <!-- Enterprise Plan -->
+       <div class="glass-panel p-8 rounded-xl border border-border flex flex-col">
+          <h3 class="text-xl font-bold mb-2">Enterprise</h3>
+          <p class="text-muted text-xs mb-6">For franchises & agencies.</p>
+          <div class="mb-8">
+             <span class="text-4xl font-bold tracking-tighter">Custom</span>
+          </div>
+          <button onclick="window.location.href='mailto:sales@ellevux.com'" class="w-full bg-surface2 border border-border text-primary py-3 rounded font-bold hover:bg-[#222] transition-colors mb-8">Book a Call</button>
+          
+          <ul class="space-y-4 text-xs text-muted flex-1">
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> Unlimited Usage</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> White-Label Solution</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> Custom Integrations</li>
+             <li class="flex gap-3 items-center"><i data-lucide="check" class="text-[#27c93f] w-4 h-4"></i> Dedicated Support</li>
+          </ul>
+       </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script>
+    lucide.createIcons();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const agentName = urlParams.get('name');
+    const agentVoice = urlParams.get('voice');
+
+    if (agentName) {
+      document.getElementById('checkout-summary').classList.remove('hidden');
+      document.getElementById('pending-agent-name').innerText = agentName;
+      document.getElementById('pricing-header').classList.add('hidden');
+    }
+
+    async function handlePurchase(plan, price) {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      
+      if (!session) {
+        window.location.href = 'signup.html';
+        return;
+      }
+
+      if (agentName) {
+        // Simulation of payment success
+        const { error } = await window.supabaseClient.from('agents').insert([
+          { 
+            name: agentName, 
+            voice_id: agentVoice, 
+            user_id: session.user.id,
+            status: 'online',
+            valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ]);
+
+        if (error) {
+          alert('Error creating agent: ' + error.message);
+        } else {
+          alert(`Success! You have purchased the ${plan} plan. Your agent "${agentName}" is now active.`);
+          window.location.href = 'dashboard.html';
+        }
+      } else {
+        alert(`Redirecting to payment for ${plan} plan ($${price})...`);
+      }
+    }
+
+    async function checkAuth() {
+      // Header auth buttons are now rendered by the shared nav.js.
+      const nav = document.getElementById('nav-auth');
+      if (!nav) return;
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (session) {
+        nav.innerHTML = `<a href="dashboard.html" class="bg-primary text-black px-4 py-2 rounded font-bold hover:bg-gray-200 transition-colors">Go to Console</a>`;
+      } else {
+        nav.innerHTML = `<a href="signup.html" class="bg-primary text-black px-4 py-2 rounded font-bold hover:bg-gray-200 transition-colors">Get Started</a>`;
+      }
+    }
+    checkAuth();
+  </script>
+  <script src="nav.js"></script>
+</body>
+</html>

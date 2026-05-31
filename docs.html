@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ellevux - Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { bg: '#000000', surface: '#0a0a0a', border: '#1f1f1f', primary: '#ffffff', muted: '#888888' } } }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { background-color: #000000; color: #ffffff; font-family: 'Inter', sans-serif; margin: 0; display: flex; min-height: 100vh; }
+    .glass-panel { background: rgba(10, 10, 10, 0.9); backdrop-filter: blur(20px); border-bottom: 1px solid #1f1f1f; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="w-64 border-r border-border fixed left-0 top-[73px] bottom-0 bg-[#050505] p-6 overflow-y-auto hidden md:block">
+     <div class="mb-8">
+        <h4 class="text-xs font-mono text-muted uppercase tracking-widest mb-4">Getting Started</h4>
+        <ul class="space-y-3 text-sm text-primary">
+           <li><a href="#authentication" class="text-muted hover:text-primary transition-colors">Authentication</a></li>
+           <li><a href="#call-routing" class="text-muted hover:text-primary transition-colors">Call Routing</a></li>
+        </ul>
+     </div>
+     <div>
+        <h4 class="text-xs font-mono text-muted uppercase tracking-widest mb-4">Integrations</h4>
+        <ul class="space-y-3 text-sm text-primary">
+           <li><a href="#google-calendar" class="text-muted hover:text-primary transition-colors">Google Calendar</a></li>
+           <li><a href="#hubspot" class="text-muted hover:text-primary transition-colors">HubSpot</a></li>
+           <li><a href="#webhooks" class="text-muted hover:text-primary transition-colors">Webhooks</a></li>
+        </ul>
+     </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 md:ml-64 pt-32 px-10 max-w-4xl pb-20">
+     <div class="text-xs font-mono text-muted mb-4 uppercase tracking-widest">Documentation</div>
+     <h1 class="text-4xl font-bold tracking-tight mb-8">Documentation Overview</h1>
+     <p class="text-muted text-lg mb-8 leading-relaxed">Here is a breakdown of the key concepts and integrations available in the Ellevux platform.</p>
+
+     <h3 class="text-xl font-bold mt-8 mb-4 text-[#8a2be2]">Getting Started</h3>
+     <div class="space-y-6">
+        <div id="authentication" class="scroll-mt-32 bg-[#050505] border border-border rounded p-6 hover:border-[#8a2be2]/50 transition-colors">
+           <h4 class="font-bold text-primary mb-2">Authentication</h4>
+           <p class="text-sm text-muted leading-relaxed">Learn how to securely log in, or for developers, how to generate API Keys so you can securely connect your own custom software to Ellevux without exposing your main credentials.</p>
+        </div>
+        <div id="call-routing" class="scroll-mt-32 bg-[#050505] border border-border rounded p-6 hover:border-[#8a2be2]/50 transition-colors">
+           <h4 class="font-bold text-primary mb-2">Call Routing</h4>
+           <p class="text-sm text-muted leading-relaxed">Instructions on how to tell the AI what to do with different types of calls. (e.g., <span class="italic">"If the caller says emergency, forward the call to my cell phone. If they want a quote, send them a pricing text."</span>)</p>
+        </div>
+     </div>
+
+     <h3 class="text-xl font-bold mt-16 mb-4 text-[#4169e1]">Integrations</h3>
+     <p class="text-muted text-sm mb-6">Connect Ellevux to the software tools you are already using to run your business.</p>
+     <div class="space-y-6">
+        <div id="google-calendar" class="scroll-mt-32 bg-[#050505] border border-border rounded p-6 hover:border-[#4169e1]/50 transition-colors">
+           <h4 class="font-bold text-primary mb-2 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-[#4169e1]"></i> Google Calendar</h4>
+           <p class="text-sm text-muted leading-relaxed">Connect your business calendar so the AI knows exactly when agents are available and can book appointments directly, entirely avoiding double-booking.</p>
+        </div>
+        <div id="hubspot" class="scroll-mt-32 bg-[#050505] border border-border rounded p-6 hover:border-[#4169e1]/50 transition-colors">
+           <h4 class="font-bold text-primary mb-2 flex items-center gap-2"><i data-lucide="database" class="w-4 h-4 text-[#4169e1]"></i> HubSpot</h4>
+           <p class="text-sm text-muted leading-relaxed">HubSpot is one of the most popular CRM platforms for local businesses. This integration allows Ellevux to automatically log call transcripts, check client histories, or insert new leads directly into your pipeline without manual data entry.</p>
+        </div>
+        <div id="webhooks" class="scroll-mt-32 bg-[#050505] border border-border rounded p-6 hover:border-[#4169e1]/50 transition-colors">
+           <h4 class="font-bold text-primary mb-2 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-[#4169e1]"></i> Webhooks</h4>
+           <p class="text-sm text-muted leading-relaxed">A technical feature for advanced users. A webhook is a way for Ellevux to instantly send data to another app. For example, a webhook could be set up to instantly ping a Slack channel with a call summary the moment a customer hangs up the phone.</p>
+        </div>
+     </div>
+  </main>
+
+  <script>lucide.createIcons();</script>
+  <script src="nav.js"></script>
+</body>
+</html>
