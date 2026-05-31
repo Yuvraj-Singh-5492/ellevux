@@ -20,12 +20,13 @@
   var style = document.createElement("style");
   style.textContent = [
     "#ellevux-header{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:center;padding:0 16px;font-family:'Inter',sans-serif;}",
-    "#ellevux-header .ev-nav{margin-top:12px;width:100%;max-width:1152px;display:flex;align-items:center;justify-content:space-between;border-radius:16px;padding:0 16px;height:80px;border:1px solid transparent;background:transparent;transition:height .3s ease,background .3s ease,border-color .3s ease,box-shadow .3s ease;}",
-    "#ellevux-header .ev-nav.scrolled{height:72px;background:rgba(0,0,0,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-color:rgba(255,255,255,.1);box-shadow:0 8px 32px -12px rgba(0,0,0,.7);}",
+    "#ellevux-header .ev-nav{margin-top:12px;width:100%;max-width:1152px;display:flex;align-items:center;justify-content:space-between;border-radius:16px;padding:0 16px;height:72px;border:1px solid transparent;background:transparent;transition:height .3s ease,background .3s ease,border-color .3s ease,box-shadow .3s ease;}",
+    "#ellevux-header .ev-nav.scrolled{height:64px;background:rgba(0,0,0,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-color:rgba(255,255,255,.1);box-shadow:0 8px 32px -12px rgba(0,0,0,.7);}",
     "@media (min-width:768px){#ellevux-header .ev-nav{padding:0 20px;}}",
-    "#ellevux-header .ev-logo{height:56px;width:auto;transition:transform .3s ease;}",
-    "#ellevux-header .ev-logo:hover{transform:scale(1.04);}",
-    "@media (min-width:768px){#ellevux-header .ev-logo{height:64px;}}",
+    "#ellevux-header .ev-brand{display:flex;align-items:center;gap:10px;border-radius:8px;text-decoration:none;transition:transform .3s ease;}",
+    "#ellevux-header .ev-brand:hover{transform:scale(1.03);}",
+    "#ellevux-header .ev-logo{height:36px;width:auto;display:block;}",
+    "#ellevux-header .ev-wordmark{font-size:26px;font-weight:600;letter-spacing:-0.02em;line-height:1;color:#fff;}",
     "#ellevux-header a,#ellevux-header button{font-family:inherit;}",
     ".ev-link{padding:8px 12px;border-radius:8px;color:#888;font-size:14px;text-decoration:none;transition:color .2s,background .2s;}",
     ".ev-link:hover{color:#fff;background:rgba(255,255,255,.05);}",
@@ -78,8 +79,9 @@
   header.innerHTML =
     '<nav class="ev-nav">' +
       '<div style="display:flex;align-items:center;gap:32px;">' +
-        '<a href="react_landing.html" aria-label="Ellevux home" style="display:flex;align-items:center;border-radius:6px;">' +
-          '<img src="logo.png" alt="Ellevux" class="ev-logo">' +
+        '<a href="react_landing.html" aria-label="Ellevux home" class="ev-brand">' +
+          '<img src="logo-icon.png" alt="" class="ev-logo">' +
+          '<span class="ev-wordmark">ellevux</span>' +
         "</a>" +
         '<div class="ev-desktop" style="gap:4px;">' + deskLinks() + "</div>" +
       "</div>" +

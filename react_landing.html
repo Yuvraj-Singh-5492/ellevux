@@ -209,14 +209,15 @@
           <nav
             className={`mt-3 w-full max-w-6xl flex items-center justify-between rounded-2xl px-4 md:px-5 transition-all duration-300 ease-out ${
               scrolled
-                ? 'h-[72px] bg-black/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.7)]'
-                : 'h-20 bg-transparent border border-transparent'
+                ? 'h-16 bg-black/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.7)]'
+                : 'h-[72px] bg-transparent border border-transparent'
             }`}
           >
             {/* Left: logo + desktop links */}
             <div className="flex items-center gap-8">
-              <a href="react_landing.html" aria-label="Ellevux home" className={`flex items-center rounded-md ${focusRing}`}>
-                <img src="logo.png" alt="Ellevux" className="h-14 md:h-16 w-auto transition-transform duration-300 hover:scale-[1.04]" />
+              <a href="react_landing.html" aria-label="Ellevux home" className={`group flex items-center gap-2.5 rounded-lg transition-transform duration-300 hover:scale-[1.03] ${focusRing}`}>
+                <img src="logo-icon.png" alt="" className="h-9 w-auto" />
+                <span className="text-[26px] font-semibold tracking-tight text-primary leading-none">ellevux</span>
               </a>
               <div className="hidden md:flex items-center gap-1 text-sm">
                 {navLinks.map((l) => (
