@@ -2,78 +2,254 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ellevux - Documentation</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      theme: { extend: { colors: { bg: '#000000', surface: '#0a0a0a', border: '#1f1f1f', primary: '#ffffff', muted: '#888888' } } }
+      theme: { extend: { colors: { bg:'#000000', surface:'#0a0a0a', surface2:'#141414', border:'#1f1f1f', primary:'#ffffff', muted:'#888888', accent:'#e6e6e6' },
+        fontFamily: { sans:['Inter','sans-serif'], mono:['ui-monospace','SFMono-Regular','Menlo','Consolas','monospace'] } } }
     }
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
   <style>
-    html { scroll-behavior: smooth; }
-    body { background-color: #000000; color: #ffffff; font-family: 'Inter', sans-serif; margin: 0; display: flex; min-height: 100vh; }
-    .glass-panel { background: rgba(10, 10, 10, 0.9); backdrop-filter: blur(20px); border-bottom: 1px solid #1f1f1f; }
+    html { scroll-behavior:smooth; }
+    body { background:#000; color:#fff; font-family:'Inter',sans-serif; margin:0; min-height:100vh; overflow-x:hidden; }
+    ::selection { background:#fff; color:#000; }
+    ::-webkit-scrollbar { width:8px; height:8px; }
+    ::-webkit-scrollbar-thumb { background:#1f1f1f; border-radius:99px; }
+    ::-webkit-scrollbar-thumb:hover { background:#2e2e2e; }
+
+    .glass-panel { background:rgba(10,10,10,0.6); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid #1f1f1f; }
+
+    .bg-grid {
+      background-size:44px 44px;
+      background-image:linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px),
+                       linear-gradient(to bottom, rgba(255,255,255,0.035) 1px, transparent 1px);
+      position:fixed; inset:0; z-index:-2;
+      mask-image:radial-gradient(circle at 70% 0%, black, transparent 70%);
+      -webkit-mask-image:radial-gradient(circle at 70% 0%, black, transparent 70%);
+    }
+    .glow-bg { position:fixed; width:600px; height:600px; border-radius:50%; filter:blur(150px); opacity:0.12; pointer-events:none; z-index:-1; top:-200px; right:-100px; background:#8a2be2; }
+
+    /* sidebar links */
+    .doc-link { position:relative; display:block; padding:7px 12px; border-radius:8px; font-size:14px; color:#888; text-decoration:none; transition:color .2s, background .2s; }
+    .doc-link:hover { color:#fff; background:rgba(255,255,255,.04); }
+    .doc-link.active { color:#fff; background:rgba(255,255,255,.05); }
+    .doc-link.active::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:3px; height:16px; border-radius:99px; background:var(--c,#4169e1); }
+
+    /* doc cards: category gradient border on hover + lift */
+    .doc-card { position:relative; transition:transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s ease; scroll-margin-top:120px; }
+    .doc-card::before {
+      content:''; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background:linear-gradient(120deg, var(--c,#4169e1), transparent 50%);
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude; opacity:0; transition:opacity .4s ease; pointer-events:none;
+    }
+    .doc-card:hover { transform:translateY(-2px); border-color:#2e2e2e; }
+    .doc-card:hover::before { opacity:.9; }
+
+    .reveal { opacity:0; transform:translateY(18px); transition:opacity .6s cubic-bezier(.2,.8,.2,1), transform .6s cubic-bezier(.2,.8,.2,1); }
+    .reveal.in { opacity:1; transform:none; }
+
+    .mobile-chip { white-space:nowrap; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior:auto; }
+      .reveal { opacity:1 !important; transform:none !important; transition:none; }
+    }
   </style>
 </head>
 <body>
-  <!-- Sidebar -->
-  <aside class="w-64 border-r border-border fixed left-0 top-[73px] bottom-0 bg-[#050505] p-6 overflow-y-auto hidden md:block">
-     <div class="mb-8">
-        <h4 class="text-xs font-mono text-muted uppercase tracking-widest mb-4">Getting Started</h4>
-        <ul class="space-y-3 text-sm text-primary">
-           <li><a href="#authentication" class="text-muted hover:text-primary transition-colors">Authentication</a></li>
-           <li><a href="#call-routing" class="text-muted hover:text-primary transition-colors">Call Routing</a></li>
-        </ul>
-     </div>
-     <div>
-        <h4 class="text-xs font-mono text-muted uppercase tracking-widest mb-4">Integrations</h4>
-        <ul class="space-y-3 text-sm text-primary">
-           <li><a href="#google-calendar" class="text-muted hover:text-primary transition-colors">Google Calendar</a></li>
-           <li><a href="#hubspot" class="text-muted hover:text-primary transition-colors">HubSpot</a></li>
-           <li><a href="#webhooks" class="text-muted hover:text-primary transition-colors">Webhooks</a></li>
-        </ul>
-     </div>
+  <div class="bg-grid"></div>
+  <div class="glow-bg"></div>
+
+  <!-- Sidebar (desktop) -->
+  <aside class="hidden md:flex flex-col fixed left-0 top-24 bottom-0 w-72 border-r border-border px-5 py-8 overflow-y-auto">
+    <div class="mb-6">
+      <div class="relative">
+        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none"></i>
+        <input id="search" type="text" placeholder="Search docs…" aria-label="Search documentation"
+          class="w-full bg-white/[0.03] border border-border rounded-lg pl-9 pr-3 py-2 text-sm text-primary placeholder:text-muted focus:outline-none focus:border-[#4169e1]/60 transition-colors">
+      </div>
+    </div>
+
+    <nav id="sidebar-nav" class="space-y-7">
+      <div>
+        <h4 class="text-[11px] font-mono text-muted uppercase tracking-widest mb-2 px-3">Getting Started</h4>
+        <div class="space-y-0.5">
+          <a href="#authentication" class="doc-link" style="--c:#8a2be2" data-target="authentication">Authentication</a>
+          <a href="#call-routing" class="doc-link" style="--c:#8a2be2" data-target="call-routing">Call Routing</a>
+        </div>
+      </div>
+      <div>
+        <h4 class="text-[11px] font-mono text-muted uppercase tracking-widest mb-2 px-3">Integrations</h4>
+        <div class="space-y-0.5">
+          <a href="#google-calendar" class="doc-link" style="--c:#4169e1" data-target="google-calendar">Google Calendar</a>
+          <a href="#hubspot" class="doc-link" style="--c:#4169e1" data-target="hubspot">HubSpot</a>
+          <a href="#webhooks" class="doc-link" style="--c:#4169e1" data-target="webhooks">Webhooks</a>
+        </div>
+      </div>
+    </nav>
+
+    <a href="signup.html" class="mt-auto pt-6 group inline-flex items-center gap-2 text-sm text-muted hover:text-primary transition-colors">
+      <i data-lucide="rocket" class="w-4 h-4"></i> Get Started <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"></i>
+    </a>
   </aside>
 
-  <!-- Main Content -->
-  <main class="flex-1 md:ml-64 pt-32 px-10 max-w-4xl pb-20">
-     <div class="text-xs font-mono text-muted mb-4 uppercase tracking-widest">Documentation</div>
-     <h1 class="text-4xl font-bold tracking-tight mb-8">Documentation Overview</h1>
-     <p class="text-muted text-lg mb-8 leading-relaxed">Here is a breakdown of the key concepts and integrations available in the Ellevux platform.</p>
+  <!-- Main -->
+  <main class="md:ml-72 pt-32 md:pt-36 px-6 md:px-12 pb-28 max-w-3xl">
 
-     <h3 class="text-xl font-bold mt-8 mb-4 text-[#8a2be2]">Getting Started</h3>
-     <div class="space-y-6">
-        <div id="authentication" class="scroll-mt-32 bg-[#050505] border border-border rounded p-6 hover:border-[#8a2be2]/50 transition-colors">
-           <h4 class="font-bold text-primary mb-2">Authentication</h4>
-           <p class="text-sm text-muted leading-relaxed">Learn how to securely log in, or for developers, how to generate API Keys so you can securely connect your own custom software to Ellevux without exposing your main credentials.</p>
-        </div>
-        <div id="call-routing" class="scroll-mt-32 bg-[#050505] border border-border rounded p-6 hover:border-[#8a2be2]/50 transition-colors">
-           <h4 class="font-bold text-primary mb-2">Call Routing</h4>
-           <p class="text-sm text-muted leading-relaxed">Instructions on how to tell the AI what to do with different types of calls. (e.g., <span class="italic">"If the caller says emergency, forward the call to my cell phone. If they want a quote, send them a pricing text."</span>)</p>
-        </div>
-     </div>
+    <!-- Hero -->
+    <div class="mb-12">
+      <div class="flex items-center gap-2 text-xs font-mono text-muted mb-5">
+        <a href="react_landing.html" class="hover:text-primary transition-colors">Ellevux</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <span class="text-accent">Docs</span>
+      </div>
+      <h1 class="text-4xl md:text-5xl font-extrabold tracking-tighter mb-4">Documentation</h1>
+      <p class="text-muted text-lg leading-relaxed">Everything you need to set up, route, and connect your AI receptionist. Key concepts and integrations, explained simply.</p>
+    </div>
 
-     <h3 class="text-xl font-bold mt-16 mb-4 text-[#4169e1]">Integrations</h3>
-     <p class="text-muted text-sm mb-6">Connect Ellevux to the software tools you are already using to run your business.</p>
-     <div class="space-y-6">
-        <div id="google-calendar" class="scroll-mt-32 bg-[#050505] border border-border rounded p-6 hover:border-[#4169e1]/50 transition-colors">
-           <h4 class="font-bold text-primary mb-2 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-[#4169e1]"></i> Google Calendar</h4>
-           <p class="text-sm text-muted leading-relaxed">Connect your business calendar so the AI knows exactly when agents are available and can book appointments directly, entirely avoiding double-booking.</p>
-        </div>
-        <div id="hubspot" class="scroll-mt-32 bg-[#050505] border border-border rounded p-6 hover:border-[#4169e1]/50 transition-colors">
-           <h4 class="font-bold text-primary mb-2 flex items-center gap-2"><i data-lucide="database" class="w-4 h-4 text-[#4169e1]"></i> HubSpot</h4>
-           <p class="text-sm text-muted leading-relaxed">HubSpot is one of the most popular CRM platforms for local businesses. This integration allows Ellevux to automatically log call transcripts, check client histories, or insert new leads directly into your pipeline without manual data entry.</p>
-        </div>
-        <div id="webhooks" class="scroll-mt-32 bg-[#050505] border border-border rounded p-6 hover:border-[#4169e1]/50 transition-colors">
-           <h4 class="font-bold text-primary mb-2 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-[#4169e1]"></i> Webhooks</h4>
-           <p class="text-sm text-muted leading-relaxed">A technical feature for advanced users. A webhook is a way for Ellevux to instantly send data to another app. For example, a webhook could be set up to instantly ping a Slack channel with a call summary the moment a customer hangs up the phone.</p>
-        </div>
-     </div>
+    <!-- Mobile topic chips -->
+    <div class="md:hidden -mx-6 px-6 mb-10 flex gap-2 overflow-x-auto pb-2">
+      <a href="#authentication" class="mobile-chip px-3 py-1.5 rounded-full border border-border bg-white/[0.03] text-xs text-muted">Authentication</a>
+      <a href="#call-routing" class="mobile-chip px-3 py-1.5 rounded-full border border-border bg-white/[0.03] text-xs text-muted">Call Routing</a>
+      <a href="#google-calendar" class="mobile-chip px-3 py-1.5 rounded-full border border-border bg-white/[0.03] text-xs text-muted">Calendar</a>
+      <a href="#hubspot" class="mobile-chip px-3 py-1.5 rounded-full border border-border bg-white/[0.03] text-xs text-muted">HubSpot</a>
+      <a href="#webhooks" class="mobile-chip px-3 py-1.5 rounded-full border border-border bg-white/[0.03] text-xs text-muted">Webhooks</a>
+    </div>
+
+    <!-- Getting Started -->
+    <section class="doc-group mb-14" data-group="Getting Started">
+      <div class="flex items-center gap-2 mb-5">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#8a2be2]"></span>
+        <h2 class="text-sm font-mono uppercase tracking-widest text-[#a855f7]">Getting Started</h2>
+      </div>
+      <div class="space-y-4">
+        <article id="authentication" class="doc-card reveal glass-panel rounded-2xl p-6" style="--c:#8a2be2" data-title="authentication api keys login credentials">
+          <h3 class="font-semibold text-lg text-primary mb-2 flex items-center gap-2.5">
+            <span class="w-9 h-9 rounded-lg bg-[#8a2be2]/10 border border-[#8a2be2]/20 flex items-center justify-center text-[#a855f7]"><i data-lucide="key-round" class="w-4 h-4"></i></span>
+            Authentication
+          </h3>
+          <p class="text-[15px] text-muted leading-relaxed">Learn how to securely log in, or — for developers — how to generate API keys so you can connect your own custom software to Ellevux without ever exposing your main credentials.</p>
+        </article>
+        <article id="call-routing" class="doc-card reveal glass-panel rounded-2xl p-6" style="--c:#8a2be2" data-title="call routing forward emergency quote rules">
+          <h3 class="font-semibold text-lg text-primary mb-2 flex items-center gap-2.5">
+            <span class="w-9 h-9 rounded-lg bg-[#8a2be2]/10 border border-[#8a2be2]/20 flex items-center justify-center text-[#a855f7]"><i data-lucide="phone-forwarded" class="w-4 h-4"></i></span>
+            Call Routing
+          </h3>
+          <p class="text-[15px] text-muted leading-relaxed mb-4">Tell the AI exactly what to do with different types of calls — by writing plain-English rules.</p>
+          <div class="border-l-2 border-[#8a2be2]/40 bg-white/[0.02] rounded-r-lg px-4 py-3 text-sm text-accent italic">
+            "If the caller says <span class="text-[#a855f7] not-italic font-medium">emergency</span>, forward to my cell. If they want a <span class="text-[#a855f7] not-italic font-medium">quote</span>, send them a pricing text."
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Integrations -->
+    <section class="doc-group mb-14" data-group="Integrations">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#4169e1]"></span>
+        <h2 class="text-sm font-mono uppercase tracking-widest text-[#6f8cff]">Integrations</h2>
+      </div>
+      <p class="text-muted text-sm mb-6">Connect Ellevux to the software tools you already use to run your business.</p>
+      <div class="space-y-4">
+        <article id="google-calendar" class="doc-card reveal glass-panel rounded-2xl p-6" style="--c:#4169e1" data-title="google calendar booking availability double-booking schedule">
+          <h3 class="font-semibold text-lg text-primary mb-2 flex items-center gap-2.5">
+            <span class="w-9 h-9 rounded-lg bg-[#4169e1]/10 border border-[#4169e1]/20 flex items-center justify-center text-[#6f8cff]"><i data-lucide="calendar" class="w-4 h-4"></i></span>
+            Google Calendar
+          </h3>
+          <p class="text-[15px] text-muted leading-relaxed">Connect your business calendar so the AI knows exactly when agents are available and can book appointments directly — entirely avoiding double-booking.</p>
+        </article>
+        <article id="hubspot" class="doc-card reveal glass-panel rounded-2xl p-6" style="--c:#4169e1" data-title="hubspot crm leads pipeline transcripts client history">
+          <h3 class="font-semibold text-lg text-primary mb-2 flex items-center gap-2.5">
+            <span class="w-9 h-9 rounded-lg bg-[#4169e1]/10 border border-[#4169e1]/20 flex items-center justify-center text-[#6f8cff]"><i data-lucide="database" class="w-4 h-4"></i></span>
+            HubSpot
+          </h3>
+          <p class="text-[15px] text-muted leading-relaxed">HubSpot is one of the most popular CRMs for local businesses. This integration lets Ellevux automatically log call transcripts, check client histories, and insert new leads directly into your pipeline — no manual data entry.</p>
+        </article>
+        <article id="webhooks" class="doc-card reveal glass-panel rounded-2xl p-6" style="--c:#4169e1" data-title="webhooks advanced developers slack api data">
+          <div class="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-[#ffbd2e] bg-[#ffbd2e]/10 border border-[#ffbd2e]/20 rounded px-2 py-0.5 mb-3">
+            <i data-lucide="terminal" class="w-3 h-3"></i> Advanced
+          </div>
+          <h3 class="font-semibold text-lg text-primary mb-2 flex items-center gap-2.5">
+            <span class="w-9 h-9 rounded-lg bg-[#4169e1]/10 border border-[#4169e1]/20 flex items-center justify-center text-[#6f8cff]"><i data-lucide="zap" class="w-4 h-4"></i></span>
+            Webhooks
+          </h3>
+          <p class="text-[15px] text-muted leading-relaxed">A webhook is a way for Ellevux to instantly send data to another app. For example, you could ping a Slack channel with a call summary the moment a customer hangs up the phone.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Empty state -->
+    <div id="empty" class="hidden text-center py-16 text-muted">
+      <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-4 opacity-50"></i>
+      <p>No docs match your search.</p>
+    </div>
+
+    <!-- Help footer -->
+    <div class="mt-16 glass-panel rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
+      <div>
+        <h4 class="font-semibold text-primary mb-1">Still have questions?</h4>
+        <p class="text-sm text-muted">Try the live demo or start your free account.</p>
+      </div>
+      <div class="flex gap-3 shrink-0">
+        <a href="demo.html" class="px-4 py-2 rounded-lg border border-border text-sm text-accent hover:border-[#333] hover:bg-white/[0.03] transition-colors">View demo</a>
+        <a href="signup.html" class="group inline-flex items-center gap-2 bg-primary text-black px-4 py-2 rounded-lg font-semibold text-sm hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_rgba(255,255,255,0.4)] transition-all duration-200">
+          Get Started <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-0.5"></i>
+        </a>
+      </div>
+    </div>
+
   </main>
 
-  <script>lucide.createIcons();</script>
+  <script>
+    lucide.createIcons();
+
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    reveals.forEach(r => io.observe(r));
+
+    // Scrollspy — highlight active sidebar link
+    const links = document.querySelectorAll('.doc-link');
+    const cards = Array.from(document.querySelectorAll('.doc-card'));
+    const spy = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          links.forEach(l => l.classList.toggle('active', l.dataset.target === e.target.id));
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+    cards.forEach(c => spy.observe(c));
+
+    // Search filter
+    const search = document.getElementById('search');
+    const groups = document.querySelectorAll('.doc-group');
+    const empty = document.getElementById('empty');
+    if (search) {
+      search.addEventListener('input', () => {
+        const q = search.value.trim().toLowerCase();
+        let total = 0;
+        groups.forEach(group => {
+          let groupVisible = 0;
+          group.querySelectorAll('.doc-card').forEach(card => {
+            const hay = (card.dataset.title + ' ' + card.textContent).toLowerCase();
+            const show = !q || hay.includes(q);
+            card.style.display = show ? '' : 'none';
+            if (show) groupVisible++;
+          });
+          group.style.display = groupVisible ? '' : 'none';
+          total += groupVisible;
+        });
+        empty.classList.toggle('hidden', total > 0);
+      });
+    }
+  </script>
   <script src="nav.js"></script>
 </body>
 </html>
