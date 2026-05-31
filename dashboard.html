@@ -13,27 +13,40 @@
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
   <style>
     body { background-color: #000000; color: #ffffff; font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-    .sidebar { width: 260px; background: #050505; border-right: 1px solid #1f1f1f; display: flex; flex-direction: column; }
+    ::selection { background:#fff; color:#000; }
+    .main-content::-webkit-scrollbar { width: 8px; }
+    .main-content::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 99px; }
+    .main-content::-webkit-scrollbar-thumb:hover { background: #2e2e2e; }
+
+    .sidebar { width: 264px; background: #050505; border-right: 1px solid #1f1f1f; display: flex; flex-direction: column; }
     .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: #000000; }
-    .glass-panel { background: rgba(10, 10, 10, 0.7); backdrop-filter: blur(20px); border: 1px solid #1f1f1f; }
-    .bg-grid { background-size: 30px 30px; background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px); }
-    .nav-item { display: flex; items-center: center; gap: 12px; padding: 12px 16px; border-radius: 8px; font-size: 14px; color: #888888; transition: all 0.2s; cursor: pointer; }
-    .nav-item:hover { background: #111; color: #ffffff; }
-    .nav-item.active { background: #ffffff; color: #000000; font-weight: 600; }
-    .stat-card { background: #0a0a0a; border: 1px solid #1f1f1f; padding: 24px; border-radius: 12px; transition: border-color 0.2s; }
-    .stat-card:hover { border-color: #333; }
+    .glass-panel { background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid #1f1f1f; }
+    .bg-grid { background-size: 32px 32px; background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px); }
+
+    .nav-item { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; font-size: 14px; color: #888888; transition: color .2s, background .2s; cursor: pointer; }
+    .nav-item:hover { background: rgba(255,255,255,.04); color: #ffffff; }
+    .nav-item.active { background: rgba(65,105,225,.12); color: #ffffff; font-weight: 600; }
+    .nav-item.active::before { content: ''; position: absolute; left: -6px; top: 50%; transform: translateY(-50%); width: 3px; height: 18px; border-radius: 99px; background: #4169e1; }
+
+    .stat-card { position: relative; background: #0a0a0a; border: 1px solid #1f1f1f; padding: 24px; border-radius: 14px; transition: transform .25s cubic-bezier(.2,.8,.2,1), border-color .25s ease; }
+    .stat-card:hover { border-color: #2e2e2e; transform: translateY(-2px); }
+
     .status-pill { padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
     .status-online { background: rgba(39, 201, 63, 0.1); color: #27c93f; border: 1px solid rgba(39, 201, 63, 0.2); }
+
+    .stat-ic { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
   </style>
 </head>
 <body>
   <!-- Sidebar -->
-  <aside class="sidebar p-6">
-    <div class="mb-10 px-2 cursor-pointer" onclick="window.location.href='react_landing.html'">
-      <img src="logo.png" alt="Ellevux" class="h-8 w-auto grayscale brightness-200">
+  <aside class="sidebar p-5">
+    <div class="mb-8 px-1 flex items-center gap-2 cursor-pointer" onclick="window.location.href='react_landing.html'">
+      <img src="logo-icon.png" alt="" class="h-8 w-auto">
+      <span class="text-lg font-semibold tracking-tight">ellevux</span>
     </div>
-    
-    <nav class="flex-1 space-y-2" id="sidebar-nav">
+
+    <div class="text-[10px] font-mono uppercase tracking-widest text-muted px-3 mb-2">Menu</div>
+    <nav class="flex-1 space-y-1" id="sidebar-nav">
       <div class="nav-item active" data-tab="overview"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</div>
       <div class="nav-item" data-tab="agents"><i data-lucide="users" class="w-5 h-5"></i> Agents</div>
       <div class="nav-item" data-tab="calls"><i data-lucide="phone" class="w-5 h-5"></i> Call Logs</div>
@@ -72,8 +85,8 @@
             <div class="text-muted">Call #4092 summary generated.</div>
           </div>
         </div>
-        <button onclick="openModal('modal-overlay', 'modal-content')" class="bg-primary text-black px-4 py-1.5 rounded-md text-sm font-bold hover:bg-gray-200 transition-colors">
-          + New Agent
+        <button onclick="openModal('modal-overlay', 'modal-content')" class="group inline-flex items-center gap-2 bg-primary text-black px-4 py-2 rounded-lg text-sm font-semibold hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_rgba(255,255,255,0.4)] transition-all duration-200">
+          <i data-lucide="plus" class="w-4 h-4"></i> New Agent
         </button>
       </div>
     </header>
@@ -168,20 +181,32 @@
         </div>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
           <div class="stat-card">
-            <div class="text-muted text-xs font-mono uppercase tracking-widest mb-2">Total Calls</div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="stat-ic bg-[#4169e1]/10 border border-[#4169e1]/20 text-[#6f8cff]"><i data-lucide="phone-incoming" class="w-5 h-5"></i></div>
+            </div>
             <div class="text-3xl font-bold">${totalCalls}</div>
+            <div class="text-muted text-xs font-mono uppercase tracking-widest mt-1">Total Calls</div>
           </div>
           <div class="stat-card">
-            <div class="text-muted text-xs font-mono uppercase tracking-widest mb-2">Jobs Booked</div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="stat-ic bg-[#27c93f]/10 border border-[#27c93f]/20 text-[#27c93f]"><i data-lucide="calendar-check" class="w-5 h-5"></i></div>
+            </div>
             <div class="text-3xl font-bold">${jobsBooked}</div>
+            <div class="text-muted text-xs font-mono uppercase tracking-widest mt-1">Jobs Booked</div>
           </div>
           <div class="stat-card">
-            <div class="text-muted text-xs font-mono uppercase tracking-widest mb-2">Active Agents</div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="stat-ic bg-[#8a2be2]/10 border border-[#8a2be2]/20 text-[#a855f7]"><i data-lucide="bot" class="w-5 h-5"></i></div>
+            </div>
             <div class="text-3xl font-bold">${activeAgentsCount}</div>
+            <div class="text-muted text-xs font-mono uppercase tracking-widest mt-1">Active Agents</div>
           </div>
           <div class="stat-card">
-            <div class="text-muted text-xs font-mono uppercase tracking-widest mb-2">Saved</div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="stat-ic bg-[#ffbd2e]/10 border border-[#ffbd2e]/20 text-[#ffbd2e]"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
+            </div>
             <div class="text-3xl font-bold">${savedText}</div>
+            <div class="text-muted text-xs font-mono uppercase tracking-widest mt-1">Saved</div>
           </div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
