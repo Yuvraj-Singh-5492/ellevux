@@ -1194,16 +1194,60 @@
 
     function Footer() {
       return (
-        <footer className="py-12 px-6 border-t border-border bg-[#050505] flex flex-col items-center">
-          <div className="mb-8 grayscale opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
-            <img src="logo.png" alt="Ellevux Logo" className="h-9 w-auto" />
+        <footer className="border-t border-border bg-[#050505] pt-16 pb-8 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col md:flex-row justify-between gap-12 mb-14">
+              {/* Brand */}
+              <div className="max-w-sm">
+                <a href="react_landing.html" className="flex items-center gap-2 mb-4">
+                  <img src="logo-icon.png" alt="" className="h-7 w-auto" />
+                  <span className="text-lg font-semibold tracking-tight text-primary">ellevux</span>
+                </a>
+                <p className="text-muted text-sm leading-relaxed mb-6">The autonomous AI receptionist for service businesses — answering every call, qualifying every lead, and booking jobs around the clock.</p>
+                <div className="flex items-center gap-3">
+                  <a href="https://instagram.com/ellevux" target="_blank" rel="noopener" aria-label="Ellevux on Instagram" className="w-9 h-9 rounded-lg border border-border bg-white/[0.03] flex items-center justify-center text-muted hover:text-primary hover:border-[#333] transition-colors">
+                    <Icon name="instagram" size={18} />
+                  </a>
+                  <a href="mailto:hello@ellevux.com" aria-label="Email Ellevux" className="w-9 h-9 rounded-lg border border-border bg-white/[0.03] flex items-center justify-center text-muted hover:text-primary hover:border-[#333] transition-colors">
+                    <Icon name="mail" size={18} />
+                  </a>
+                </div>
+              </div>
+
+              {/* Link columns */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 text-sm">
+                <div>
+                  <h4 className="text-xs font-mono uppercase tracking-widest text-muted mb-4">Product</h4>
+                  <ul className="space-y-3">
+                    <li><a href="pricing.html" className="text-accent hover:text-primary transition-colors">Pricing</a></li>
+                    <li><a href="demo.html" className="text-accent hover:text-primary transition-colors">Demo</a></li>
+                    <li><a href="changelog.html" className="text-accent hover:text-primary transition-colors">Changelog</a></li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="text-xs font-mono uppercase tracking-widest text-muted mb-4">Resources</h4>
+                  <ul className="space-y-3">
+                    <li><a href="docs.html" className="text-accent hover:text-primary transition-colors">Documentation</a></li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="text-xs font-mono uppercase tracking-widest text-muted mb-4">Account</h4>
+                  <ul className="space-y-3">
+                    <li><a href="login.html" className="text-accent hover:text-primary transition-colors">Login</a></li>
+                    <li><a href="signup.html" className="text-accent hover:text-primary transition-colors">Get Started</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom bar */}
+            <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-xs text-[#555]">© 2026 Ellevux Inc. All rights reserved.</div>
+              <a href="mailto:hello@ellevux.com" className="text-xs text-muted hover:text-primary transition-colors flex items-center gap-1.5">
+                <Icon name="mail" size={13} /> hello@ellevux.com
+              </a>
+            </div>
           </div>
-          <div className="flex gap-8 text-sm text-muted mb-8">
-            <a href="https://twitter.com/ellevux" target="_blank" className="hover:text-primary transition-colors">Twitter</a>
-            <a href="https://github.com/ellevux" target="_blank" className="hover:text-primary transition-colors">GitHub</a>
-            <a href="https://discord.gg/ellevux" target="_blank" className="hover:text-primary transition-colors">Discord</a>
-          </div>
-          <div className="text-xs text-[#444]">© 2026 Ellevux Inc. All rights reserved.</div>
         </footer>
       )
     }
