@@ -20,12 +20,12 @@
   var style = document.createElement("style");
   style.textContent = [
     "#ellevux-header{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:center;padding:0 16px;font-family:'Inter',sans-serif;}",
-    "#ellevux-header .ev-nav{margin-top:12px;width:100%;max-width:1152px;display:flex;align-items:center;justify-content:space-between;border-radius:16px;padding:0 16px;height:64px;border:1px solid transparent;background:transparent;transition:height .3s ease,background .3s ease,border-color .3s ease,box-shadow .3s ease;}",
-    "#ellevux-header .ev-nav.scrolled{height:56px;background:rgba(0,0,0,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-color:rgba(255,255,255,.1);box-shadow:0 8px 32px -12px rgba(0,0,0,.7);}",
+    "#ellevux-header .ev-nav{margin-top:12px;width:100%;max-width:1152px;display:flex;align-items:center;justify-content:space-between;border-radius:16px;padding:0 16px;height:80px;border:1px solid transparent;background:transparent;transition:height .3s ease,background .3s ease,border-color .3s ease,box-shadow .3s ease;}",
+    "#ellevux-header .ev-nav.scrolled{height:72px;background:rgba(0,0,0,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-color:rgba(255,255,255,.1);box-shadow:0 8px 32px -12px rgba(0,0,0,.7);}",
     "@media (min-width:768px){#ellevux-header .ev-nav{padding:0 20px;}}",
-    "#ellevux-header .ev-logo{height:48px;width:auto;transition:transform .3s ease;}",
+    "#ellevux-header .ev-logo{height:56px;width:auto;transition:transform .3s ease;}",
     "#ellevux-header .ev-logo:hover{transform:scale(1.04);}",
-    "@media (min-width:768px){#ellevux-header .ev-logo{height:56px;}}",
+    "@media (min-width:768px){#ellevux-header .ev-logo{height:64px;}}",
     "#ellevux-header a,#ellevux-header button{font-family:inherit;}",
     ".ev-link{padding:8px 12px;border-radius:8px;color:#888;font-size:14px;text-decoration:none;transition:color .2s,background .2s;}",
     ".ev-link:hover{color:#fff;background:rgba(255,255,255,.05);}",
