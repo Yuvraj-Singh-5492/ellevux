@@ -6,3 +6,6 @@ Thumbs.db
 __pycache__/
 dist/
 .vite/
+.claude/
+_*
+z*.txt
