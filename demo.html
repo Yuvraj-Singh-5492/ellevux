@@ -80,17 +80,21 @@
           <i data-lucide="file-text" class="w-4 h-4"></i> Call transcript
         </div>
         <div id="transcript" class="space-y-5 text-sm flex-1">
-          <div class="tx-line flex gap-3 items-start" data-start="0">
+          <div class="tx-line flex gap-3 items-start">
             <div class="w-8 h-8 rounded-full bg-[#4169e1]/20 text-[#4169e1] flex items-center justify-center shrink-0 font-bold text-[11px]">AI</div>
-            <p class="text-accent leading-relaxed pt-1">"Thank you for calling Apex Plumbing, this is the Ellevux Assistant. How can I help you today?"</p>
+            <p class="text-accent leading-relaxed pt-1">"Thank you for calling..."</p>
           </div>
-          <div class="tx-line flex gap-3 items-start" data-start="6">
+          <div class="tx-line flex gap-3 items-start">
             <div class="w-8 h-8 rounded-full bg-[#333] text-primary flex items-center justify-center shrink-0 font-bold text-[11px]">C</div>
-            <p class="text-primary leading-relaxed pt-1">"Hi, my water heater just burst and is flooding my basement! I need someone right now."</p>
+            <p class="text-primary leading-relaxed pt-1">"Hi, my sink is leaking..."</p>
           </div>
-          <div class="tx-line flex gap-3 items-start" data-start="14">
+          <div class="tx-line flex gap-3 items-start">
             <div class="w-8 h-8 rounded-full bg-[#4169e1]/20 text-[#4169e1] flex items-center justify-center shrink-0 font-bold text-[11px]">AI</div>
-            <p class="text-accent leading-relaxed pt-1">"I understand — that's an emergency. I'm dispatching our on-call technician immediately and booking an emergency slot for you now."</p>
+            <p class="text-accent leading-relaxed pt-1">"I can help with that..."</p>
+          </div>
+          <div class="tx-line flex gap-3 items-start">
+            <div class="w-8 h-8 rounded-full bg-[#333] text-primary flex items-center justify-center shrink-0 font-bold text-[11px]">C</div>
+            <p class="text-primary leading-relaxed pt-1">"..."</p>
           </div>
         </div>
 
@@ -180,16 +184,8 @@
     const trackDot=document.getElementById('trackDot');
     const curTime=document.getElementById('curTime');
     const durTime=document.getElementById('durTime');
-    const lines=Array.from(document.querySelectorAll('.tx-line'));
-
     const setIcon=(name)=>{ playBtn.innerHTML='<i data-lucide="'+name+'" class="fill-current w-7 h-7'+(name==='play'?' ml-0.5':'')+'"></i>'; lucide.createIcons(); };
     const fmt=(s)=>{ if(!isFinite(s)) return '0:00'; const m=Math.floor(s/60); const sec=Math.floor(s%60); return m+':'+String(sec).padStart(2,'0'); };
-
-    function setActiveLine(t){
-      let active=-1;
-      lines.forEach((l,i)=>{ if(t>=parseFloat(l.dataset.start)) active=i; });
-      lines.forEach((l,i)=>{ l.style.opacity = (active===-1||i===active)?'1':'0.4'; });
-    }
 
     audio.addEventListener('loadedmetadata',()=>{ if(isFinite(audio.duration)) durTime.textContent=fmt(audio.duration); });
 
@@ -203,7 +199,6 @@
       const pct = audio.duration ? (audio.currentTime/audio.duration*100) : 0;
       trackFill.style.width=pct+'%'; trackDot.style.left=pct+'%';
       curTime.textContent=fmt(audio.currentTime);
-      setActiveLine(audio.currentTime);
     });
 
     audio.addEventListener('ended',()=>{
@@ -211,7 +206,6 @@
       waveform.classList.remove('playing'); document.getElementById('player').classList.remove('playing');
       trackFill.style.width='0%'; trackDot.style.left='0%'; trackDot.style.opacity='0';
       curTime.textContent='0:00'; audio.currentTime=0;
-      lines.forEach(l=>l.style.opacity='1');
     });
 
     // Seek by clicking the track
