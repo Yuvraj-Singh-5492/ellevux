@@ -31,15 +31,20 @@
     }
     .glow-bg { position:fixed; width:680px; height:680px; border-radius:50%; filter:blur(140px); opacity:0.14; pointer-events:none; z-index:-1; top:-220px; left:50%; transform:translateX(-50%); background:#4169e1; }
 
-    /* timeline rail */
-    .rail::before {
-      content:''; position:absolute; left:19px; top:8px; bottom:8px; width:2px;
-      background:linear-gradient(to bottom, transparent, #1f1f1f 8%, #1f1f1f 92%, transparent);
+    /* timeline connectors — drawn between nodes only, never after the last visible entry */
+    .entry::before {
+      content:''; position:absolute; left:19px; top:24px; width:2px;
+      height:calc(100% + 3rem);
+      background:linear-gradient(to bottom, #1f1f1f, #1f1f1f 80%, transparent);
+      z-index:0;
     }
-    @media (min-width:768px){ .rail::before { left:23px; } }
+    .entry.is-last::before { display:none; }
+    @media (min-width:768px){
+      .entry::before { left:23px; top:28px; height:calc(100% + 3.5rem); }
+    }
 
     /* category-colored node */
-    .node { box-shadow:0 0 0 4px #000, 0 0 18px -2px var(--c, #4169e1); }
+    .node { box-shadow:0 0 0 4px #000, 0 0 18px -2px var(--c, #4169e1); z-index:1; }
 
     /* premium card: subtle category top-glow on hover */
     .entry-card { position:relative; transition:transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s ease; }
@@ -220,6 +225,15 @@
     const chips = document.querySelectorAll('.chip');
     const entries = document.querySelectorAll('.entry');
     const empty = document.getElementById('empty');
+
+    // Tag the last *visible* entry so its trailing connector line is hidden.
+    function markLast() {
+      const vis = Array.from(entries).filter(e => e.style.display !== 'none');
+      entries.forEach(e => e.classList.remove('is-last'));
+      if (vis.length) vis[vis.length - 1].classList.add('is-last');
+    }
+    markLast();
+
     chips.forEach(chip => {
       chip.addEventListener('click', () => {
         const f = chip.dataset.filter;
@@ -230,6 +244,7 @@
           en.style.display = show ? '' : 'none';
           if (show) { visible++; en.classList.remove('in'); void en.offsetWidth; en.classList.add('in'); }
         });
+        markLast();
         empty.classList.toggle('hidden', visible > 0);
       });
     });
