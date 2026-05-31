@@ -2,153 +2,238 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ellevux - Changelog</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      theme: { extend: { colors: { bg: '#000000', surface: '#0a0a0a', border: '#1f1f1f', primary: '#ffffff', muted: '#888888' } } }
+      theme: { extend: { colors: { bg: '#000000', surface: '#0a0a0a', surface2: '#141414', border: '#1f1f1f', primary: '#ffffff', muted: '#888888', accent: '#e6e6e6' },
+        fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['ui-monospace','SFMono-Regular','Menlo','Consolas','monospace'] } } }
     }
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
   <style>
-    body { background-color: #000000; color: #ffffff; font-family: 'Inter', sans-serif; margin: 0; min-height: 100vh; overflow-x: hidden; }
-    .glass-panel { background: rgba(10, 10, 10, 0.7); backdrop-filter: blur(20px); border: 1px solid #1f1f1f; }
-    .glass-nav { background: rgba(10, 10, 10, 0.7); backdrop-filter: blur(20px); border-bottom: 1px solid #1f1f1f; }
-    
-    .bento-glow { position: relative; }
-    .bento-glow::before {
-      content: ''; position: absolute; inset: -1px; border-radius: inherit;
-      background: linear-gradient(45deg, rgba(138,43,226,0.3), rgba(65,105,225,0.3), transparent 60%);
-      z-index: -1; opacity: 0; transition: opacity 0.5s ease;
-    }
-    .bento-glow:hover::before { opacity: 1; }
+    body { background-color:#000; color:#fff; font-family:'Inter',sans-serif; margin:0; min-height:100vh; overflow-x:hidden; }
+    ::selection { background:#fff; color:#000; }
+    ::-webkit-scrollbar { width:0; background:transparent; }
 
+    .glass-panel { background:rgba(10,10,10,0.6); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid #1f1f1f; }
+
+    /* ambient backdrop */
     .bg-grid {
-      background-size: 40px 40px;
-      background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                        linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-      position: absolute; inset: 0; z-index: -2;
-      mask-image: radial-gradient(circle at top, black, transparent 80%);
+      background-size:44px 44px;
+      background-image:linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+                       linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+      position:fixed; inset:0; z-index:-2;
+      mask-image:radial-gradient(circle at 50% 0%, black, transparent 75%);
+      -webkit-mask-image:radial-gradient(circle at 50% 0%, black, transparent 75%);
     }
-    .glow-bg {
-      position: absolute; width: 600px; height: 600px; border-radius: 50%;
-      filter: blur(120px); opacity: 0.15; pointer-events: none; z-index: -1; top: 0; left: 50%; transform: translateX(-50%);
+    .glow-bg { position:fixed; width:680px; height:680px; border-radius:50%; filter:blur(140px); opacity:0.14; pointer-events:none; z-index:-1; top:-220px; left:50%; transform:translateX(-50%); background:#4169e1; }
+
+    /* timeline rail */
+    .rail::before {
+      content:''; position:absolute; left:19px; top:8px; bottom:8px; width:2px;
+      background:linear-gradient(to bottom, transparent, #1f1f1f 8%, #1f1f1f 92%, transparent);
     }
-    .mac-dot { width: 10px; height: 10px; border-radius: 50%; }
+    @media (min-width:768px){ .rail::before { left:23px; } }
+
+    /* category-colored node */
+    .node { box-shadow:0 0 0 4px #000, 0 0 18px -2px var(--c, #4169e1); }
+
+    /* premium card: subtle category top-glow on hover */
+    .entry-card { position:relative; transition:transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s ease; }
+    .entry-card::before {
+      content:''; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background:linear-gradient(120deg, var(--c, #4169e1), transparent 45%);
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude;
+      opacity:0; transition:opacity .4s ease; pointer-events:none;
+    }
+    .entry-card:hover { transform:translateY(-3px); border-color:#2e2e2e; }
+    .entry-card:hover::before { opacity:.9; }
+
+    /* filter chips */
+    .chip { transition:all .2s ease; }
+    .chip[data-active="true"] { background:#fff; color:#000; border-color:#fff; }
+
+    /* scroll reveal */
+    .reveal { opacity:0; transform:translateY(24px); transition:opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1); }
+    .reveal.in { opacity:1; transform:none; }
+
+    /* live waveform */
+    @keyframes wv { 0%,100%{transform:scaleY(.35)} 50%{transform:scaleY(1)} }
+    .wv { animation:wv 1.1s ease-in-out infinite; transform-origin:center; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity:1 !important; transform:none !important; transition:none; }
+      .wv { animation:none; }
+    }
   </style>
 </head>
 <body>
   <div class="bg-grid"></div>
-  <div class="glow-bg" style="background: #4169e1;"></div>
+  <div class="glow-bg"></div>
 
-  <div class="max-w-4xl mx-auto pt-40 px-6 pb-32">
-    <!-- Hero Section -->
-    <div class="text-center mb-24 relative">
-       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-[#111] text-xs font-mono text-muted mb-6">
-          <span class="w-2 h-2 rounded-full bg-[#27c93f] animate-pulse"></span> Always shipping
-       </div>
-       <h1 class="text-5xl md:text-6xl font-bold tracking-tight mb-6">What's new</h1>
-       <p class="text-muted text-xl max-w-2xl mx-auto">New updates, improvements, and features from the Ellevux team.</p>
+  <main class="max-w-3xl mx-auto pt-36 md:pt-44 px-6 pb-32">
+
+    <!-- Hero -->
+    <header class="mb-14">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-white/[0.03] text-xs font-mono text-muted mb-6">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#27c93f] opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-[#27c93f]"></span>
+        </span>
+        Always shipping
+      </div>
+      <h1 class="text-5xl md:text-7xl font-extrabold tracking-tighter mb-5">
+        What's <span class="bg-gradient-to-r from-white via-white to-[#4169e1] bg-clip-text text-transparent">new</span>
+      </h1>
+      <p class="text-muted text-lg md:text-xl max-w-xl leading-relaxed">New updates, improvements, and fixes from the Ellevux team — shipped continuously.</p>
+    </header>
+
+    <!-- Filter chips -->
+    <div id="filters" class="flex flex-wrap gap-2 mb-16">
+      <button class="chip px-4 py-1.5 rounded-full border border-border text-sm text-accent bg-white/[0.02] hover:border-[#333]" data-filter="all" data-active="true">All updates</button>
+      <button class="chip px-4 py-1.5 rounded-full border border-border text-sm text-muted bg-white/[0.02] hover:border-[#333]" data-filter="major" data-active="false">Major</button>
+      <button class="chip px-4 py-1.5 rounded-full border border-border text-sm text-muted bg-white/[0.02] hover:border-[#333]" data-filter="integration" data-active="false">Integrations</button>
+      <button class="chip px-4 py-1.5 rounded-full border border-border text-sm text-muted bg-white/[0.02] hover:border-[#333]" data-filter="fixes" data-active="false">Fixes</button>
     </div>
 
     <!-- Timeline -->
-    <div class="space-y-24 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-px before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
-       
-       <!-- Item 1: Voice Latency -->
-       <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-          <div class="flex items-center justify-center w-10 h-10 rounded-full border border-[#4169e1] bg-[#050505] text-[#4169e1] shadow-[0_0_15px_rgba(65,105,225,0.3)] shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-             <i data-lucide="zap" class="w-4 h-4"></i>
-          </div>
-          <div class="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)]">
-             <div class="text-xs font-mono text-muted mb-3 flex items-center gap-3">
-                <span class="text-primary">April 18, 2026</span>
-                <span class="bg-[#4169e1]/20 text-[#4169e1] px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold border border-[#4169e1]/30">Major Update</span>
-             </div>
-             <div class="glass-panel p-1 rounded-xl bento-glow transition-all">
-                <div class="bg-[#050505] rounded-lg p-6">
-                   <h3 class="font-bold text-2xl text-primary mb-3 tracking-tight">Ultra-low latency voice engine</h3>
-                   <p class="text-sm text-muted leading-relaxed mb-6">We've completely rewritten our audio streaming infrastructure and swapped out our text-to-speech pipeline. We now achieve consistent sub-150ms latency across all carrier networks, making conversations feel completely indistinguishable from humans.</p>
-                   
-                   <!-- Mini visual -->
-                   <div class="border border-border rounded-lg overflow-hidden bg-[#0a0a0a]">
-                      <div class="h-8 border-b border-border bg-[#111] flex items-center px-3 gap-2">
-                         <div class="mac-dot bg-[#333]"></div><div class="mac-dot bg-[#333]"></div><div class="mac-dot bg-[#333]"></div>
-                         <div class="ml-auto text-[10px] font-mono text-muted">audio_stream.ts</div>
-                      </div>
-                      <div class="p-4 flex items-center justify-center gap-1 h-24 relative overflow-hidden">
-                         <div class="absolute inset-0 bg-gradient-to-r from-transparent via-[#4169e1]/10 to-transparent animate-pulse"></div>
-                         <!-- Fake waveform -->
-                         <div class="w-1.5 h-4 bg-[#4169e1] rounded-full"></div>
-                         <div class="w-1.5 h-8 bg-[#4169e1] rounded-full"></div>
-                         <div class="w-1.5 h-12 bg-[#4169e1] rounded-full"></div>
-                         <div class="w-1.5 h-6 bg-[#4169e1] rounded-full"></div>
-                         <div class="w-1.5 h-10 bg-[#4169e1] rounded-full"></div>
-                         <div class="w-1.5 h-16 bg-[#4169e1] rounded-full"></div>
-                         <div class="w-1.5 h-5 bg-[#4169e1] rounded-full"></div>
-                         <div class="w-1.5 h-8 bg-[#4169e1] rounded-full"></div>
-                         <div class="ml-4 text-xs font-mono text-[#27c93f] flex items-center gap-1"><i data-lucide="activity" class="w-3 h-3"></i> 142ms ping</div>
-                      </div>
-                   </div>
-                </div>
-             </div>
-          </div>
-       </div>
+    <div id="timeline" class="rail relative space-y-12 md:space-y-14">
 
-       <!-- Item 2: HubSpot -->
-       <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-          <div class="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-[#050505] text-muted shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-             <i data-lucide="database" class="w-4 h-4"></i>
+      <!-- Item 1: Voice latency (Major) -->
+      <article class="entry reveal relative pl-16 md:pl-20" data-cat="major" style="--c:#4169e1">
+        <div class="node absolute left-0 top-1 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border bg-[#050505]" style="border-color:#4169e1; color:#4169e1">
+          <i data-lucide="zap" class="w-5 h-5"></i>
+        </div>
+        <div class="flex items-center gap-3 mb-3 text-xs font-mono">
+          <span class="text-muted">April 18, 2026</span>
+          <span class="px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold" style="background:rgba(65,105,225,.15); color:#6f8cff; border:1px solid rgba(65,105,225,.3)">Major Update</span>
+          <span class="text-[#27c93f] ml-auto flex items-center gap-1 text-[10px]"><i data-lucide="git-commit-horizontal" class="w-3 h-3"></i> v2.4.0</span>
+        </div>
+        <div class="entry-card glass-panel rounded-2xl p-6 md:p-7">
+          <h3 class="font-bold text-2xl text-primary mb-3 tracking-tight">Ultra-low latency voice engine</h3>
+          <p class="text-[15px] text-muted leading-relaxed mb-6">We completely rewrote our audio streaming infrastructure and swapped our text-to-speech pipeline. Ellevux now holds a consistent sub-150ms response time across all carrier networks — conversations feel genuinely indistinguishable from a human receptionist.</p>
+          <div class="border border-border rounded-xl overflow-hidden bg-[#0a0a0a]">
+            <div class="h-9 border-b border-border bg-white/[0.02] flex items-center px-3 gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f56]"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-[#27c93f]"></span>
+              <span class="ml-auto text-[10px] font-mono text-muted">audio_stream.ts</span>
+            </div>
+            <div class="p-5 flex items-center gap-1.5 h-28 relative overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-[#4169e1]/10 to-transparent"></div>
+              <div class="wv w-1.5 h-10 bg-[#4169e1] rounded-full" style="animation-delay:0s"></div>
+              <div class="wv w-1.5 h-16 bg-[#4169e1] rounded-full" style="animation-delay:.1s"></div>
+              <div class="wv w-1.5 h-20 bg-[#4169e1] rounded-full" style="animation-delay:.2s"></div>
+              <div class="wv w-1.5 h-12 bg-[#4169e1] rounded-full" style="animation-delay:.3s"></div>
+              <div class="wv w-1.5 h-16 bg-[#4169e1] rounded-full" style="animation-delay:.4s"></div>
+              <div class="wv w-1.5 h-24 bg-[#4169e1] rounded-full" style="animation-delay:.5s"></div>
+              <div class="wv w-1.5 h-10 bg-[#4169e1] rounded-full" style="animation-delay:.6s"></div>
+              <div class="wv w-1.5 h-16 bg-[#4169e1] rounded-full" style="animation-delay:.7s"></div>
+              <div class="ml-auto text-xs font-mono text-[#27c93f] flex items-center gap-1.5 relative"><i data-lucide="activity" class="w-3.5 h-3.5"></i> 142ms</div>
+            </div>
           </div>
-          <div class="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)]">
-             <div class="text-xs font-mono text-muted mb-3 flex items-center gap-3 md:justify-end">
-                <span class="bg-[#8a2be2]/20 text-[#8a2be2] px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold border border-[#8a2be2]/30">Integration</span>
-                <span class="text-primary">March 28, 2026</span>
-             </div>
-             <div class="glass-panel p-1 rounded-xl bento-glow transition-all">
-                <div class="bg-[#050505] rounded-lg p-6">
-                   <h3 class="font-bold text-2xl text-primary mb-3 tracking-tight">HubSpot Integration live</h3>
-                   <p class="text-sm text-muted leading-relaxed mb-6">Direct read/write access to HubSpot APIs is now in stable release. Ellevux can automatically check customer histories in real-time before booking an appointment.</p>
-                   
-                   <div class="border border-border rounded-lg p-4 bg-[#0a0a0a] font-mono text-[10px] sm:text-xs">
-                      <div class="text-[#8a2be2]">const</div> <div class="text-primary inline">lead = await HubSpot.createContact(</div><br/>
-                      <div class="pl-4 text-muted">firstName: caller.firstName,</div><br/>
-                      <div class="pl-4 text-muted">phone: <span class="text-[#27c93f]">caller.phone</span>,</div><br/>
-                      <div class="pl-4 text-muted">lifecycleStage: <span class="text-[#ff5f56]">"lead"</span></div><br/>
-                      <div class="text-primary">);</div>
-                   </div>
-                </div>
-             </div>
-          </div>
-       </div>
+        </div>
+      </article>
 
-       <!-- Item 3: Bug fixes -->
-       <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-          <div class="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-[#050505] text-muted shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-             <i data-lucide="bug" class="w-4 h-4"></i>
+      <!-- Item 2: HubSpot (Integration) -->
+      <article class="entry reveal relative pl-16 md:pl-20" data-cat="integration" style="--c:#8a2be2">
+        <div class="node absolute left-0 top-1 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border bg-[#050505]" style="border-color:#8a2be2; color:#a855f7">
+          <i data-lucide="database" class="w-5 h-5"></i>
+        </div>
+        <div class="flex items-center gap-3 mb-3 text-xs font-mono">
+          <span class="text-muted">March 28, 2026</span>
+          <span class="px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold" style="background:rgba(138,43,226,.15); color:#c084fc; border:1px solid rgba(138,43,226,.3)">Integration</span>
+          <span class="text-[#27c93f] ml-auto flex items-center gap-1 text-[10px]"><i data-lucide="git-commit-horizontal" class="w-3 h-3"></i> v2.3.0</span>
+        </div>
+        <div class="entry-card glass-panel rounded-2xl p-6 md:p-7">
+          <h3 class="font-bold text-2xl text-primary mb-3 tracking-tight">HubSpot integration is live</h3>
+          <p class="text-[15px] text-muted leading-relaxed mb-6">Direct read/write access to the HubSpot API is now in stable release. Ellevux checks customer history in real time before booking, and writes every qualified lead straight to your CRM — no manual entry.</p>
+          <div class="border border-border rounded-xl bg-[#0a0a0a] p-5 font-mono text-[11px] sm:text-xs leading-relaxed overflow-x-auto">
+            <div><span class="text-[#8a2be2]">const</span> <span class="text-primary">lead</span> = <span class="text-[#8a2be2]">await</span> <span class="text-primary">HubSpot</span>.<span class="text-[#6f8cff]">createContact</span>({</div>
+            <div class="pl-4 text-muted">firstName: <span class="text-[#e6e6e6]">caller.firstName</span>,</div>
+            <div class="pl-4 text-muted">phone: <span class="text-[#27c93f]">caller.phone</span>,</div>
+            <div class="pl-4 text-muted">lifecycleStage: <span class="text-[#ffbd2e]">"lead"</span></div>
+            <div class="text-primary">});</div>
           </div>
-          <div class="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)]">
-             <div class="text-xs font-mono text-muted mb-3 flex items-center gap-3">
-                <span class="text-primary">March 12, 2026</span>
-                <span class="bg-[#1f1f1f] text-muted px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold border border-[#333]">Fixes</span>
-             </div>
-             <div class="glass-panel p-1 rounded-xl transition-all hover:border-[#333]">
-                <div class="bg-[#050505] rounded-lg p-6">
-                   <h3 class="font-bold text-lg text-primary mb-3 tracking-tight">Calendar sync improvements</h3>
-                   <ul class="text-sm text-muted space-y-2 list-disc list-inside">
-                      <li>Fixed an edge case where PST to EST timezone conversion failed during daylight savings.</li>
-                      <li>Improved the parsing logic for multi-day events in Google Calendar.</li>
-                      <li>Added automatic retry logic for webhook timeouts.</li>
-                   </ul>
-                </div>
-             </div>
-          </div>
-       </div>
+        </div>
+      </article>
+
+      <!-- Item 3: Calendar fixes (Fixes) -->
+      <article class="entry reveal relative pl-16 md:pl-20" data-cat="fixes" style="--c:#27c93f">
+        <div class="node absolute left-0 top-1 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border bg-[#050505]" style="border-color:#2a2a2a; color:#888">
+          <i data-lucide="wrench" class="w-5 h-5"></i>
+        </div>
+        <div class="flex items-center gap-3 mb-3 text-xs font-mono">
+          <span class="text-muted">March 12, 2026</span>
+          <span class="px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold bg-[#1f1f1f] text-muted border border-[#333]">Fixes</span>
+          <span class="text-muted/60 ml-auto flex items-center gap-1 text-[10px]"><i data-lucide="git-commit-horizontal" class="w-3 h-3"></i> v2.2.4</span>
+        </div>
+        <div class="entry-card glass-panel rounded-2xl p-6 md:p-7">
+          <h3 class="font-bold text-xl text-primary mb-4 tracking-tight">Calendar sync improvements</h3>
+          <ul class="space-y-3 text-sm text-muted">
+            <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-[#27c93f] shrink-0 mt-0.5"></i> Fixed an edge case where PST→EST timezone conversion failed during daylight savings.</li>
+            <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-[#27c93f] shrink-0 mt-0.5"></i> Improved parsing logic for multi-day events in Google Calendar.</li>
+            <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-[#27c93f] shrink-0 mt-0.5"></i> Added automatic retry logic for webhook timeouts.</li>
+          </ul>
+        </div>
+      </article>
 
     </div>
-  </div>
 
-  <script>lucide.createIcons();</script>
+    <!-- Empty state (shown when a filter matches nothing) -->
+    <div id="empty" class="hidden text-center py-20 text-muted">
+      <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-4 opacity-50"></i>
+      <p>No updates in this category yet.</p>
+    </div>
+
+    <!-- Footer CTA -->
+    <div class="mt-24 text-center">
+      <p class="text-muted text-sm mb-4">That's everything so far — more shipping soon.</p>
+      <a href="signup.html" class="group inline-flex items-center gap-2 bg-primary text-black px-5 py-2.5 rounded-lg font-semibold text-sm hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_rgba(255,255,255,0.4)] transition-all duration-200">
+        Get started free <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-0.5"></i>
+      </a>
+    </div>
+
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    // Scroll reveal (staggered)
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          const el = e.target;
+          setTimeout(() => el.classList.add('in'), (Array.from(reveals).indexOf(el) % 3) * 90);
+          io.unobserve(el);
+        }
+      });
+    }, { threshold: 0.15 });
+    reveals.forEach(r => io.observe(r));
+
+    // Category filter
+    const chips = document.querySelectorAll('.chip');
+    const entries = document.querySelectorAll('.entry');
+    const empty = document.getElementById('empty');
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const f = chip.dataset.filter;
+        chips.forEach(c => { c.dataset.active = (c === chip) ? 'true' : 'false'; c.classList.toggle('text-accent', c === chip); c.classList.toggle('text-muted', c !== chip); });
+        let visible = 0;
+        entries.forEach(en => {
+          const show = (f === 'all' || en.dataset.cat === f);
+          en.style.display = show ? '' : 'none';
+          if (show) { visible++; en.classList.remove('in'); void en.offsetWidth; en.classList.add('in'); }
+        });
+        empty.classList.toggle('hidden', visible > 0);
+      });
+    });
+  </script>
   <script src="nav.js"></script>
 </body>
 </html>
