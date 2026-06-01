@@ -36,6 +36,7 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
 
@@ -1061,6 +1062,84 @@
       )
     }
 
+    // Small contained 3D wireframe globe for the Calendar Sync mockup.
+    function SyncGlobe() {
+      const mountRef = useRef(null);
+      useEffect(() => {
+        const mount = mountRef.current;
+        if (!mount || !window.THREE) return;
+        const THREE = window.THREE;
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let renderer;
+        try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); }
+        catch (e) { return; } // no WebGL -> fall back to CSS placeholder underneath
+
+        const S = 128;
+        renderer.setSize(S, S);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        mount.appendChild(renderer.domElement);
+        mount.querySelector('.globe-fallback')?.style.setProperty('display', 'none');
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+        camera.position.z = 3.1;
+        const group = new THREE.Group(); group.rotation.x = 0.35; scene.add(group);
+
+        const R = 1;
+        const wire = new THREE.LineSegments(
+          new THREE.WireframeGeometry(new THREE.IcosahedronGeometry(R, 3)),
+          new THREE.LineBasicMaterial({ color: 0x4169e1, transparent: true, opacity: 0.30 })
+        );
+        group.add(wire);
+
+        // glowing nodes (golden-spiral distribution)
+        const N = 90, pos = new Float32Array(N * 3);
+        for (let i = 0; i < N; i++) {
+          const phi = Math.acos(1 - 2 * (i + 0.5) / N);
+          const th = Math.PI * (1 + Math.sqrt(5)) * i;
+          pos[i*3] = R*Math.sin(phi)*Math.cos(th); pos[i*3+1] = R*Math.sin(phi)*Math.sin(th); pos[i*3+2] = R*Math.cos(phi);
+        }
+        const ng = new THREE.BufferGeometry(); ng.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        const c = document.createElement('canvas'); c.width = c.height = 64;
+        const g = c.getContext('2d'); const grd = g.createRadialGradient(32,32,0,32,32,32);
+        grd.addColorStop(0,'rgba(255,255,255,1)'); grd.addColorStop(0.4,'rgba(160,190,255,0.7)'); grd.addColorStop(1,'rgba(255,255,255,0)');
+        g.fillStyle = grd; g.beginPath(); g.arc(32,32,32,0,Math.PI*2); g.fill();
+        const sprite = new THREE.CanvasTexture(c);
+        const nodes = new THREE.Points(ng, new THREE.PointsMaterial({ size: 0.09, map: sprite, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: 0x9fb4ff, opacity: 0.95 }));
+        group.add(nodes);
+
+        const clock = new THREE.Clock();
+        let raf, running = true;
+        function tick() {
+          if (!running) return;
+          const t = clock.getElapsedTime();
+          group.rotation.y = t * 0.18;
+          nodes.material.opacity = 0.7 + Math.sin(t * 1.5) * 0.2;
+          renderer.render(scene, camera);
+          raf = requestAnimationFrame(tick);
+        }
+        if (reduce) renderer.render(scene, camera); else tick();
+        const onVis = () => { if (document.hidden) { running = false; cancelAnimationFrame(raf); } else if (!reduce) { running = true; tick(); } };
+        document.addEventListener('visibilitychange', onVis);
+
+        return () => {
+          running = false; cancelAnimationFrame(raf);
+          document.removeEventListener('visibilitychange', onVis);
+          wire.geometry.dispose(); wire.material.dispose(); ng.dispose(); nodes.material.dispose(); sprite.dispose(); renderer.dispose();
+          if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
+        };
+      }, []);
+      return (
+        <div ref={mountRef} className="w-32 h-32 relative z-10 flex items-center justify-center" aria-hidden="true">
+          {/* CSS fallback shown if WebGL is unavailable */}
+          <div className="globe-fallback w-32 h-32 rounded-full border border-border flex items-center justify-center relative bg-[#0a0a0a]">
+            <div className="absolute inset-0 border-t-2 border-[#4169e1] rounded-full animate-spin"></div>
+            <Icon name="calendar-check" size={32} className="text-[#4169e1]" />
+          </div>
+        </div>
+      );
+    }
+
     function MockupTwo() {
       return (
         <div className="mockup-frame rounded-xl overflow-hidden relative bento-glow">
@@ -1088,10 +1167,7 @@
                </div>
             </div>
             <div className="w-3/5 p-6 flex flex-col items-center justify-center relative bg-grid">
-               <div className="w-32 h-32 rounded-full border border-border flex items-center justify-center relative bg-[#0a0a0a] z-10">
-                  <div className="absolute inset-0 border-t-2 border-[#4169e1] rounded-full animate-spin"></div>
-                  <Icon name="calendar-check" size={32} className="text-[#4169e1]" />
-               </div>
+               <SyncGlobe />
                <div className="mt-6 text-xs font-mono text-primary bg-[#111] px-3 py-1 rounded-full border border-[#222] z-10 flex items-center gap-2">
                  <div className="w-1.5 h-1.5 rounded-full bg-[#27c93f] animate-pulse"></div> Syncing with Google Calendar
                </div>
