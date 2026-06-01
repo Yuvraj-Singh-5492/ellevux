@@ -1031,6 +1031,88 @@
       );
     }
 
+    // Tiny 3D "data inflow" — particles streaming inward into a glowing core (lead injected into CRM).
+    function DataInflow() {
+      const mountRef = useRef(null);
+      useEffect(() => {
+        const mount = mountRef.current;
+        if (!mount || !window.THREE) return;
+        const THREE = window.THREE;
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let renderer;
+        try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); }
+        catch (e) { return; }
+        const SZ = 28;
+        renderer.setSize(SZ, SZ);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        mount.appendChild(renderer.domElement);
+        mount.querySelector('.inflow-fallback')?.style.setProperty('display', 'none');
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+        camera.position.z = 3.2;
+        const group = new THREE.Group(); group.rotation.x = 0.5; scene.add(group);
+
+        // glowing core (the CRM destination)
+        const core = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16),
+          new THREE.MeshBasicMaterial({ color: 0xffbd2e }));
+        group.add(core);
+
+        // particles that spiral inward then reset to the rim
+        const N = 36;
+        const pos = new Float32Array(N * 3);
+        const seed = [];
+        for (let i = 0; i < N; i++) {
+          seed.push({ ang: Math.random() * Math.PI * 2, tilt: (Math.random() - 0.5) * 1.2, off: Math.random() });
+        }
+        const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        const c = document.createElement('canvas'); c.width = c.height = 64;
+        const g = c.getContext('2d'); const grd = g.createRadialGradient(32,32,0,32,32,32);
+        grd.addColorStop(0,'rgba(255,255,255,1)'); grd.addColorStop(0.4,'rgba(255,210,120,0.7)'); grd.addColorStop(1,'rgba(255,255,255,0)');
+        g.fillStyle = grd; g.beginPath(); g.arc(32,32,32,0,Math.PI*2); g.fill();
+        const sprite = new THREE.CanvasTexture(c);
+        const parts = new THREE.Points(pg, new THREE.PointsMaterial({ size: 0.16, map: sprite, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xffd27a }));
+        group.add(parts);
+
+        const clock = new THREE.Clock();
+        let raf, running = true;
+        function tick() {
+          if (!running) return;
+          const t = clock.getElapsedTime();
+          const arr = pg.attributes.position.array;
+          for (let i = 0; i < N; i++) {
+            const s = seed[i];
+            const p = (t * 0.5 + s.off) % 1;          // 1 -> 0 radius (inward)
+            const radius = (1 - p) * 1.5;
+            const ang = s.ang + p * 4;                // spiral
+            arr[i*3]   = Math.cos(ang) * radius;
+            arr[i*3+1] = s.tilt * radius;
+            arr[i*3+2] = Math.sin(ang) * radius;
+          }
+          pg.attributes.position.needsUpdate = true;
+          core.material.opacity = 0.7 + Math.sin(t * 3) * 0.3;
+          group.rotation.y = t * 0.25;
+          renderer.render(scene, camera);
+          raf = requestAnimationFrame(tick);
+        }
+        if (reduce) { /* static frame */ renderer.render(scene, camera); } else tick();
+        const onVis = () => { if (document.hidden) { running = false; cancelAnimationFrame(raf); } else if (!reduce) { running = true; tick(); } };
+        document.addEventListener('visibilitychange', onVis);
+
+        return () => {
+          running = false; cancelAnimationFrame(raf);
+          document.removeEventListener('visibilitychange', onVis);
+          core.geometry.dispose(); core.material.dispose(); pg.dispose(); parts.material.dispose(); sprite.dispose(); renderer.dispose();
+          if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
+        };
+      }, []);
+      return (
+        <div ref={mountRef} className="w-7 h-7 relative flex items-center justify-center shrink-0" aria-hidden="true">
+          <span className="inflow-fallback"><Icon name="check-circle" size={14} /></span>
+        </div>
+      );
+    }
+
     function MockupOne() {
       return (
         <div className="mockup-frame rounded-xl overflow-hidden relative bento-glow">
@@ -1055,7 +1137,7 @@
             </div>
             <div className="text-primary">{`};`}</div>
             <div className="mt-6 text-[#ffbd2e] flex items-center gap-2 bg-[#111] p-3 rounded border border-[#222]">
-               <Icon name="check-circle" size={14} /> <span className="text-primary">Lead injected into CRM via API</span>
+               <DataInflow /> <span className="text-primary">Lead injected into CRM via API</span>
             </div>
           </div>
         </div>
