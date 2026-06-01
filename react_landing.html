@@ -435,6 +435,62 @@
       );
     }
 
+    // Tiny 3D "live core" — a pulsing rotating icosahedron = the console is alive/processing.
+    function CoreOrb() {
+      const mountRef = useRef(null);
+      useEffect(() => {
+        const mount = mountRef.current;
+        if (!mount || !window.THREE) return;
+        const THREE = window.THREE;
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let renderer;
+        try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); }
+        catch (e) { return; }
+        const SZ = 18;
+        renderer.setSize(SZ, SZ);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        mount.appendChild(renderer.domElement);
+        mount.querySelector('.core-fallback')?.style.setProperty('display', 'none');
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+        camera.position.z = 3;
+        const geo = new THREE.IcosahedronGeometry(1, 0);
+        const wire = new THREE.LineSegments(
+          new THREE.WireframeGeometry(geo),
+          new THREE.LineBasicMaterial({ color: 0x27c93f, transparent: true, opacity: 0.9 })
+        );
+        scene.add(wire);
+
+        const clock = new THREE.Clock();
+        let raf, running = true;
+        function tick() {
+          if (!running) return;
+          const t = clock.getElapsedTime();
+          wire.rotation.y = t * 0.8; wire.rotation.x = t * 0.4;
+          const s = 0.85 + Math.sin(t * 3) * 0.12;   // pulse
+          wire.scale.setScalar(s);
+          renderer.render(scene, camera);
+          raf = requestAnimationFrame(tick);
+        }
+        if (reduce) renderer.render(scene, camera); else tick();
+        const onVis = () => { if (document.hidden) { running = false; cancelAnimationFrame(raf); } else if (!reduce) { running = true; tick(); } };
+        document.addEventListener('visibilitychange', onVis);
+
+        return () => {
+          running = false; cancelAnimationFrame(raf);
+          document.removeEventListener('visibilitychange', onVis);
+          geo.dispose(); wire.geometry.dispose(); wire.material.dispose(); renderer.dispose();
+          if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
+        };
+      }, []);
+      return (
+        <div ref={mountRef} className="w-[18px] h-[18px] relative flex items-center justify-center" aria-hidden="true" title="System live">
+          <span className="core-fallback w-1.5 h-1.5 rounded-full bg-[#27c93f] animate-pulse"></span>
+        </div>
+      );
+    }
+
     function HeroMockup() {
       const [activeTab, setActiveTab] = React.useState('phone');
       const [activeFile, setActiveFile] = React.useState('live_call.ts');
@@ -758,7 +814,8 @@
                <div className="mac-dot mac-max"></div>
              </div>
              <div className="text-xs font-mono text-muted tracking-widest uppercase">Ellevux_Console_v2.0</div>
-             <div className="flex gap-4 text-muted">
+             <div className="flex items-center gap-3 text-muted">
+               <CoreOrb />
                <Icon name="wifi" size={16} />
                <Icon name="battery-charging" size={16} />
              </div>
