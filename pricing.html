@@ -16,6 +16,46 @@
     .glass-panel { background: rgba(10, 10, 10, 0.7); backdrop-filter: blur(20px); border: 1px solid #1f1f1f; }
     .glow-bg { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(100px); opacity: 0.15; pointer-events: none; background: #8a2be2; z-index: -1; top: 0; left: 50%; transform: translateX(-50%); }
     .bg-grid { background-size: 40px 40px; background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px); position: absolute; inset: 0; z-index: -2; mask-image: radial-gradient(circle at top, black, transparent 80%); }
+
+    /* Real frosted-glass pricing cards */
+    .plan-card {
+      position: relative; isolation: isolate; overflow: hidden;
+      background: linear-gradient(135deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03) 55%, rgba(255,255,255,0.015));
+      backdrop-filter: blur(22px) saturate(170%);
+      -webkit-backdrop-filter: blur(22px) saturate(170%);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.25),
+        inset 0 -22px 44px -22px rgba(0,0,0,0.5),
+        0 14px 36px -18px rgba(0,0,0,0.7);
+      transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s ease, box-shadow .3s ease;
+    }
+    .plan-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
+      background: linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0) 60%);
+      border-radius: inherit; pointer-events: none; z-index: 0;
+    }
+    .plan-card > * { position: relative; z-index: 1; }
+    .plan-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.18);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.35),
+        inset 0 -22px 44px -22px rgba(0,0,0,0.5),
+        0 26px 54px -22px rgba(0,0,0,0.8),
+        0 0 44px -16px rgba(138,43,226,0.4);
+    }
+    /* Featured (Growth) plan: purple glass tint + glow */
+    .plan-card-featured {
+      border-color: rgba(138,43,226,0.45);
+      background: linear-gradient(135deg, rgba(138,43,226,0.16), rgba(138,43,226,0.05) 50%, rgba(255,255,255,0.015));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.3),
+        inset 0 -22px 44px -22px rgba(0,0,0,0.5),
+        0 0 50px -14px rgba(138,43,226,0.4),
+        0 14px 36px -18px rgba(0,0,0,0.7);
+    }
+    .plan-card-featured:hover { border-color: rgba(138,43,226,0.7); }
   </style>
 </head>
 <body>
@@ -36,7 +76,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
        <!-- Starter Plan -->
-       <div class="glass-panel p-8 rounded-xl border border-border flex flex-col">
+       <div class="plan-card p-8 rounded-2xl flex flex-col">
           <h3 class="text-xl font-bold mb-2">Starter</h3>
           <p class="text-muted text-xs mb-6">For small service businesses.</p>
           <div class="mb-8">
@@ -53,7 +93,7 @@
        </div>
 
        <!-- Growth Plan -->
-       <div class="glass-panel p-8 rounded-xl border border-[#8a2be2]/50 relative overflow-hidden shadow-[0_0_30px_rgba(138,43,226,0.1)] flex flex-col">
+       <div class="plan-card plan-card-featured p-8 rounded-2xl relative overflow-hidden flex flex-col">
           <div class="absolute top-4 right-4 bg-[#8a2be2]/20 text-[#8a2be2] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#8a2be2]/50">POPULAR</div>
           <h3 class="text-xl font-bold mb-2">Growth</h3>
           <p class="text-muted text-xs mb-6">For growing service teams.</p>
@@ -72,7 +112,7 @@
        </div>
 
        <!-- Scale Plan -->
-       <div class="glass-panel p-8 rounded-xl border border-border flex flex-col">
+       <div class="plan-card p-8 rounded-2xl flex flex-col">
           <h3 class="text-xl font-bold mb-2">Scale</h3>
           <p class="text-muted text-xs mb-6">For multi-location operations.</p>
           <div class="mb-8">
@@ -90,7 +130,7 @@
        </div>
 
        <!-- Enterprise Plan -->
-       <div class="glass-panel p-8 rounded-xl border border-border flex flex-col">
+       <div class="plan-card p-8 rounded-2xl flex flex-col">
           <h3 class="text-xl font-bold mb-2">Enterprise</h3>
           <p class="text-muted text-xs mb-6">For franchises & agencies.</p>
           <div class="mb-8">
