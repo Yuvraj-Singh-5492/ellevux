@@ -148,8 +148,45 @@
     </div>
   </div>
 
+  <!-- PayPal Subscription Modal -->
+  <div id="paypal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+    <div class="w-full max-w-md plan-card p-8 rounded-2xl relative">
+      <button onclick="hidePayModal()" class="absolute right-4 top-4 text-muted hover:text-primary transition-colors" aria-label="Close"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <div class="text-xs font-mono text-muted uppercase tracking-widest mb-2">Subscribe</div>
+      <h3 class="text-2xl font-bold mb-1"><span id="pp-plan-name">Plan</span></h3>
+      <div class="text-muted text-sm mb-1"><span id="pp-plan-price">$0/mo</span></div>
+      <div id="pp-setup-note" class="text-xs text-[#ffbd2e] mb-6">Includes a one-time setup fee on your first payment.</div>
+      <div id="paypal-button-container" class="min-h-[52px]"></div>
+      <div id="pp-loading" class="text-center text-xs text-muted py-4 hidden">Loading secure PayPal checkout…</div>
+      <div class="mt-5 flex items-center justify-center gap-1.5 text-[11px] text-muted"><i data-lucide="lock" class="w-3 h-3"></i> Payments processed securely by PayPal</div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
+  <!-- =================================================================
+       PAYPAL CONFIG  (temporary paywall until Stripe is ready)
+       HOW TO GO LIVE:
+       1. Create a PayPal Business account -> developer.paypal.com.
+       2. Create a REST App to get a Client ID (use the Sandbox one first).
+       3. Create a subscription Plan per tier (Billing Plans) with a
+          $499/$299/... setup_fee + the monthly recurring price, and paste
+          each Plan ID below.
+       4. Put your Client ID in PAYPAL_CLIENT_ID and flip nothing else.
+       While PAYPAL_CLIENT_ID is empty, the page falls back to the existing
+       mock activation so nothing breaks in the meantime.
+       ================================================================= -->
+  <script>
+    const PAYPAL_CLIENT_ID = ""; // <-- paste PayPal Client ID (sandbox first). Empty = mock mode.
+    const PAYPAL_PLANS = {
+      // plan name : PayPal subscription Plan ID (P-xxxxxxxx)
+      Starter: "",
+      Growth:  "",
+      Scale:   "",
+    };
+    const PAYPAL_SETUP_FEES = { Starter: 99, Growth: 149, Scale: 199 }; // one-time, shown to user
+  </script>
+
   <script>
     lucide.createIcons();
 
@@ -163,34 +200,86 @@
       document.getElementById('pricing-header').classList.add('hidden');
     }
 
+    let paypalSdkLoaded = false;
+    function loadPayPalSdk() {
+      return new Promise((resolve, reject) => {
+        if (paypalSdkLoaded && window.paypal) return resolve();
+        const s = document.createElement('script');
+        s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(PAYPAL_CLIENT_ID)}&vault=true&intent=subscription`;
+        s.onload = () => { paypalSdkLoaded = true; resolve(); };
+        s.onerror = () => reject(new Error('PayPal SDK failed to load'));
+        document.head.appendChild(s);
+      });
+    }
+
+    function showPayModal(plan, price) {
+      document.getElementById('pp-plan-name').innerText = plan;
+      document.getElementById('pp-plan-price').innerText = '$' + price + '/mo';
+      const fee = PAYPAL_SETUP_FEES[plan];
+      const note = document.getElementById('pp-setup-note');
+      note.innerText = fee ? `Includes a one-time $${fee} setup fee on your first payment.` : '';
+      const overlay = document.getElementById('paypal-overlay');
+      overlay.classList.remove('hidden'); overlay.classList.add('flex');
+    }
+    function hidePayModal() {
+      const overlay = document.getElementById('paypal-overlay');
+      overlay.classList.add('hidden'); overlay.classList.remove('flex');
+      document.getElementById('paypal-button-container').innerHTML = '';
+    }
+    document.getElementById('paypal-overlay').addEventListener('click', (e) => {
+      if (e.target.id === 'paypal-overlay') hidePayModal();
+    });
+
+    // Called after a confirmed payment (or mock) — creates the agent + activates.
+    async function activatePurchase(plan) {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (!session) { window.location.href = 'signup.html'; return; }
+
+      if (agentName) {
+        const { error } = await window.supabaseClient.from('agents').insert([
+          { name: agentName, voice_id: agentVoice, user_id: session.user.id,
+            status: 'online',
+            valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() }
+        ]);
+        if (error) { alert('Error creating agent: ' + error.message); return; }
+      }
+      alert(`Success! You're subscribed to the ${plan} plan.`);
+      window.location.href = 'dashboard.html';
+    }
+
     async function handlePurchase(plan, price) {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
-      
-      if (!session) {
-        window.location.href = 'signup.html';
+      if (!session) { window.location.href = 'signup.html'; return; }
+
+      // --- Mock fallback: until PayPal is configured, keep prior behavior ---
+      if (!PAYPAL_CLIENT_ID || !PAYPAL_PLANS[plan]) {
+        activatePurchase(plan);
         return;
       }
 
-      if (agentName) {
-        // Simulation of payment success
-        const { error } = await window.supabaseClient.from('agents').insert([
-          { 
-            name: agentName, 
-            voice_id: agentVoice, 
-            user_id: session.user.id,
-            status: 'online',
-            valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-          }
-        ]);
-
-        if (error) {
-          alert('Error creating agent: ' + error.message);
-        } else {
-          alert(`Success! You have purchased the ${plan} plan. Your agent "${agentName}" is now active.`);
-          window.location.href = 'dashboard.html';
-        }
-      } else {
-        alert(`Redirecting to payment for ${plan} plan ($${price})...`);
+      // --- Real PayPal subscription flow ---
+      showPayModal(plan, price);
+      const container = document.getElementById('paypal-button-container');
+      container.innerHTML = '';
+      document.getElementById('pp-loading').classList.remove('hidden');
+      try {
+        await loadPayPalSdk();
+        document.getElementById('pp-loading').classList.add('hidden');
+        window.paypal.Buttons({
+          style: { layout: 'vertical', color: 'blue', shape: 'pill', label: 'subscribe' },
+          createSubscription: (data, actions) => actions.subscription.create({ plan_id: PAYPAL_PLANS[plan] }),
+          onApprove: (data) => {
+            // NOTE: client-side activation (stopgap). Add a PayPal webhook ->
+            // Supabase Edge Function to verify data.subscriptionID server-side
+            // before going to real scale.
+            activatePurchase(plan);
+          },
+          onError: (err) => { console.error(err); alert('Payment error. Please try again.'); }
+        }).render('#paypal-button-container');
+      } catch (e) {
+        document.getElementById('pp-loading').classList.add('hidden');
+        alert('Could not load PayPal. Please try again.');
+        hidePayModal();
       }
     }
 
