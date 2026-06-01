@@ -1408,6 +1408,91 @@
       )
     }
 
+    // Tiny 3D "router" — a hub node sends a pulse along a branch to the active location node.
+    function RouteHub() {
+      const mountRef = useRef(null);
+      useEffect(() => {
+        const mount = mountRef.current;
+        if (!mount || !window.THREE) return;
+        const THREE = window.THREE;
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let renderer;
+        try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); }
+        catch (e) { return; }
+        const SZ = 28;
+        renderer.setSize(SZ, SZ);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        mount.appendChild(renderer.domElement);
+        mount.querySelector('.route-fallback')?.style.setProperty('display', 'none');
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+        camera.position.z = 3.4;
+        const group = new THREE.Group(); group.rotation.x = 0.5; group.rotation.z = 0.2; scene.add(group);
+
+        const GREEN = 0x27c93f, DIM = 0x555555;
+        // hub (left) + two destination nodes (right, upper=active, lower=full)
+        const hub = new THREE.Vector3(-1.1, 0, 0);
+        const dest1 = new THREE.Vector3(1.1, 0.6, 0);   // active
+        const dest2 = new THREE.Vector3(1.1, -0.6, 0);  // full/dim
+        const nodeGeo = new THREE.SphereGeometry(0.16, 16, 16);
+        const hubMesh = new THREE.Mesh(nodeGeo, new THREE.MeshBasicMaterial({ color: GREEN }));
+        hubMesh.position.copy(hub); group.add(hubMesh);
+        const d1 = new THREE.Mesh(nodeGeo, new THREE.MeshBasicMaterial({ color: GREEN }));
+        d1.position.copy(dest1); group.add(d1);
+        const d2 = new THREE.Mesh(nodeGeo, new THREE.MeshBasicMaterial({ color: DIM }));
+        d2.position.copy(dest2); group.add(d2);
+
+        // static branch lines
+        const mkLine = (a, b, col, op) => new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints([a, b]),
+          new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: op }));
+        const l1 = mkLine(hub, dest1, GREEN, 0.4); group.add(l1);
+        const l2 = mkLine(hub, dest2, DIM, 0.25); group.add(l2);
+
+        // travelling pulse along the active branch
+        const c = document.createElement('canvas'); c.width = c.height = 64;
+        const g = c.getContext('2d'); const grd = g.createRadialGradient(32,32,0,32,32,32);
+        grd.addColorStop(0,'rgba(255,255,255,1)'); grd.addColorStop(0.4,'rgba(140,255,170,0.8)'); grd.addColorStop(1,'rgba(255,255,255,0)');
+        g.fillStyle = grd; g.beginPath(); g.arc(32,32,32,0,Math.PI*2); g.fill();
+        const sprite = new THREE.CanvasTexture(c);
+        const pulse = new THREE.Sprite(new THREE.SpriteMaterial({ map: sprite, color: 0x8cffaa, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+        pulse.scale.set(0.4, 0.4, 0.4); group.add(pulse);
+
+        const clock = new THREE.Clock();
+        let raf, running = true;
+        function tick() {
+          if (!running) return;
+          const t = clock.getElapsedTime();
+          const p = (t * 0.8) % 1;                 // hub -> dest1
+          pulse.position.lerpVectors(hub, dest1, p);
+          pulse.material.opacity = Math.sin(p * Math.PI); // fade in/out along the trip
+          d1.material.color.setHex(GREEN);
+          d1.scale.setScalar(p > 0.85 ? 1.4 : 1);  // active node "receives" -> pop
+          hubMesh.material.opacity = 0.7 + Math.sin(t * 4) * 0.3;
+          renderer.render(scene, camera);
+          raf = requestAnimationFrame(tick);
+        }
+        if (reduce) renderer.render(scene, camera); else tick();
+        const onVis = () => { if (document.hidden) { running = false; cancelAnimationFrame(raf); } else if (!reduce) { running = true; tick(); } };
+        document.addEventListener('visibilitychange', onVis);
+
+        return () => {
+          running = false; cancelAnimationFrame(raf);
+          document.removeEventListener('visibilitychange', onVis);
+          nodeGeo.dispose(); hubMesh.material.dispose(); d1.material.dispose(); d2.material.dispose();
+          l1.geometry.dispose(); l1.material.dispose(); l2.geometry.dispose(); l2.material.dispose();
+          pulse.material.dispose(); sprite.dispose(); renderer.dispose();
+          if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
+        };
+      }, []);
+      return (
+        <div ref={mountRef} className="w-7 h-7 relative flex items-center justify-center shrink-0" aria-hidden="true">
+          <span className="route-fallback w-2 h-2 rounded-full bg-[#27c93f] animate-pulse"></span>
+        </div>
+      );
+    }
+
     function MockupFive() {
       return (
         <div className="mockup-frame rounded-xl overflow-hidden relative bento-glow">
@@ -1440,6 +1525,10 @@
                 <div className="w-full bg-[#222] h-1 rounded-full overflow-hidden">
                    <div className="bg-[#888] h-full w-full"></div>
                 </div>
+             </div>
+             <div className="mt-4 flex items-center gap-2 text-[#27c93f]">
+                <RouteHub />
+                <span className="text-[10px] tracking-wide">Call routed to nearest available location</span>
              </div>
           </div>
         </div>
