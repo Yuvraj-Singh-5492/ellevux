@@ -251,6 +251,23 @@
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       if (!session) { window.location.href = 'signup.html'; return; }
 
+      // --- Already-subscribed guard: don't charge an active subscriber twice.
+      //     Reads the webhook-owned `subscriptions` table; if it doesn't exist
+      //     yet (pre-setup) the catch lets the flow proceed normally. ---
+      try {
+        const { data: sub } = await window.supabaseClient
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', session.user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+        if (sub) {
+          alert("You already have an active subscription. Taking you to your dashboard.");
+          window.location.href = 'dashboard.html';
+          return;
+        }
+      } catch (e) { /* subscriptions table not set up yet -> proceed to checkout */ }
+
       // --- Mock fallback: until PayPal is configured, keep prior behavior ---
       if (!PAYPAL_CLIENT_ID || !PAYPAL_PLANS[plan]) {
         activatePurchase(plan);
@@ -267,7 +284,12 @@
         document.getElementById('pp-loading').classList.add('hidden');
         window.paypal.Buttons({
           style: { layout: 'vertical', color: 'blue', shape: 'pill', label: 'subscribe' },
-          createSubscription: (data, actions) => actions.subscription.create({ plan_id: PAYPAL_PLANS[plan] }),
+          // custom_id = Supabase user id, so the webhook can map the payment
+          // back to the right account and activate it server-side.
+          createSubscription: (data, actions) => actions.subscription.create({
+            plan_id: PAYPAL_PLANS[plan],
+            custom_id: session.user.id
+          }),
           onApprove: (data) => {
             // NOTE: client-side activation (stopgap). Add a PayPal webhook ->
             // Supabase Edge Function to verify data.subscriptionID server-side
