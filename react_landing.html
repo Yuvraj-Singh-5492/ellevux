@@ -48,7 +48,54 @@
       backdrop-filter: blur(20px);
       border: 1px solid #1f1f1f;
     }
-    
+
+    /* Real frosted-glass cards for the features grid */
+    .feat-glass {
+      position: relative; isolation: isolate; overflow: hidden;
+      background: linear-gradient(135deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03) 55%, rgba(255,255,255,0.015));
+      backdrop-filter: blur(22px) saturate(170%);
+      -webkit-backdrop-filter: blur(22px) saturate(170%);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.25),
+        inset 0 -22px 44px -22px rgba(0,0,0,0.5),
+        0 14px 36px -18px rgba(0,0,0,0.7);
+      transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s ease, box-shadow .3s ease;
+    }
+    /* diagonal specular sheen across the top */
+    .feat-glass::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 55%;
+      background: linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0) 60%);
+      border-radius: inherit; pointer-events: none; z-index: 0;
+    }
+    /* colored gradient edge on hover */
+    .feat-glass::after {
+      content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+      background: linear-gradient(135deg, rgba(110,140,255,0.85), rgba(168,85,247,0.45) 45%, transparent 75%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      opacity: 0; transition: opacity .35s ease; z-index: 2; pointer-events: none;
+    }
+    .feat-glass > * { position: relative; z-index: 1; }
+    .feat-glass:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.18);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.35),
+        inset 0 -22px 44px -22px rgba(0,0,0,0.5),
+        0 26px 54px -22px rgba(0,0,0,0.8),
+        0 0 44px -16px rgba(65,105,225,0.45);
+    }
+    .feat-glass:hover::after { opacity: 1; }
+
+    /* soft ambient color behind the features grid so the glass has something to refract */
+    .feat-ambient { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .feat-ambient span {
+      position: absolute; border-radius: 9999px; filter: blur(90px); opacity: 0.22;
+    }
+    .feat-ambient .fa1 { width: 480px; height: 320px; top: 4%; left: -6%; background: #4169e1; }
+    .feat-ambient .fa2 { width: 460px; height: 320px; bottom: 0%; right: -6%; background: #8a2be2; }
+
     .glow-bg {
       position: absolute;
       width: 600px;
@@ -824,7 +871,7 @@
                 key={m.id}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="cursor-pointer glass-panel rounded-xl border border-border p-8 transition-colors hover:border-[#333] bento-glow"
+                className="cursor-pointer feat-glass rounded-2xl p-8"
                 onClick={() => setSelected(m)}
               >
                 <div className="flex items-center justify-between mb-6">
@@ -886,8 +933,9 @@
 
     function MiniBentoGrid() {
       return (
-        <section className="py-32 px-6 max-w-6xl mx-auto border-t border-border mt-32 relative">
-          <FeaturesList items={FEATURE_ITEMS} />
+        <section className="py-32 px-6 max-w-6xl mx-auto border-t border-border mt-32 relative overflow-hidden">
+          <div className="feat-ambient"><span className="fa1"></span><span className="fa2"></span></div>
+          <div className="relative z-10"><FeaturesList items={FEATURE_ITEMS} /></div>
         </section>
       );
     }
