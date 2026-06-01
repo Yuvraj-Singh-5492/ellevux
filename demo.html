@@ -20,6 +20,25 @@
 
     .glass-panel { background:rgba(10,10,10,0.6); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid #1f1f1f; }
 
+    /* Real frosted-glass demo player panel */
+    .demo-glass {
+      position:relative; isolation:isolate;
+      background:linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025) 55%, rgba(255,255,255,0.015));
+      backdrop-filter:blur(24px) saturate(170%); -webkit-backdrop-filter:blur(24px) saturate(170%);
+      border:1px solid rgba(255,255,255,0.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.25),
+        inset 0 -26px 50px -26px rgba(0,0,0,0.5),
+        0 24px 60px -22px rgba(0,0,0,0.8);
+    }
+    /* specular sheen across the top */
+    .demo-glass::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:45%;
+      background:linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 60%);
+      border-radius:inherit; pointer-events:none; z-index:0;
+    }
+    .demo-glass > * { position:relative; z-index:1; }
+
     .bg-grid {
       background-size:44px 44px;
       background-image:linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
@@ -72,7 +91,7 @@
       <p class="text-muted text-lg max-w-xl mx-auto leading-relaxed">A real recording of our AI agent handling an emergency service call — qualifying, dispatching, and booking, all on its own.</p>
     </div>
 
-    <div class="glass-panel rounded-3xl p-6 md:p-8 grid md:grid-cols-2 gap-8 reveal">
+    <div class="demo-glass rounded-3xl p-6 md:p-8 grid md:grid-cols-2 gap-8 reveal">
 
       <!-- Left: Transcript -->
       <div class="flex flex-col">
