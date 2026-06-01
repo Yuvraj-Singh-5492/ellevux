@@ -1192,13 +1192,15 @@
               Build service that never <span className="italic text-gray-400 font-serif">breaks</span>
             </h2>
             <p className="text-muted text-xl max-w-2xl mx-auto mb-12">Stop missing calls. Start booking jobs. Join 500+ businesses automating their front desk with Ellevux.</p>
-            <div className="flex gap-4 justify-center">
-               <a href={user ? "dashboard.html" : "signup.html"} className="bg-primary text-black px-8 py-3 rounded-md font-bold hover:bg-gray-200 transition-colors tracking-wide text-sm inline-block">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+               <a href={user ? "dashboard.html" : "signup.html"} className="group inline-flex items-center gap-2 bg-primary text-black px-7 py-3 rounded-lg font-semibold text-sm hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-8px_rgba(255,255,255,0.45)] transition-all duration-200">
                   {user ? "Enter Dashboard" : "Get Started"}
+                  <Icon name="arrow-right" size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
                 </a>
                 {!hasAgents && (
-                  <a href="docs.html" className="border border-border text-primary px-8 py-3 rounded-md font-bold hover:bg-surface transition-colors tracking-wide text-sm glass-panel inline-block">
+                  <a href="docs.html" className="group inline-flex items-center gap-2 glass-panel border border-border text-primary px-7 py-3 rounded-lg font-semibold text-sm hover:border-[#333] hover:bg-white/[0.04] transition-all duration-200">
                     View Documentation
+                    <Icon name="arrow-up-right" size={15} className="text-muted transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </a>
                 )}
             </div>
