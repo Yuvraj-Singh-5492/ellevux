@@ -98,6 +98,28 @@
     .feat-ambient .fa1 { width: 600px; height: 420px; top: 30%; left: -18%; background: #4169e1; }
     .feat-ambient .fa2 { width: 560px; height: 420px; bottom: 10%; right: -18%; background: #8a2be2; }
 
+    /* Frosted-glass frame for the product mockup panels (opaque inner content,
+       so the glass reads on the frame: light-catch rim, sheen, hover lift) */
+    .mockup-frame {
+      position: relative; isolation: isolate;
+      background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02) 55%);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.28),
+        0 18px 48px -20px rgba(0,0,0,0.8);
+      transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s ease, box-shadow .3s ease;
+    }
+    .mockup-frame:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.18);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.4),
+        0 28px 60px -22px rgba(0,0,0,0.9),
+        0 0 50px -18px rgba(65,105,225,0.4);
+    }
+
     .glow-bg {
       position: absolute;
       width: 600px;
@@ -1010,7 +1032,7 @@
 
     function MockupOne() {
       return (
-        <div className="glass-panel border border-border rounded-xl overflow-hidden shadow-2xl relative bento-glow">
+        <div className="mockup-frame rounded-xl overflow-hidden relative bento-glow">
           <div className="absolute top-[-50px] right-[-50px] w-[200px] h-[200px] bg-[#8a2be2] opacity-10 blur-3xl rounded-full"></div>
           <div className="h-10 border-b border-border bg-[#0a0a0a] flex items-center px-4 justify-between">
             <div className="flex gap-2">
@@ -1041,7 +1063,7 @@
 
     function MockupTwo() {
       return (
-        <div className="glass-panel border border-border rounded-xl overflow-hidden shadow-2xl relative bento-glow">
+        <div className="mockup-frame rounded-xl overflow-hidden relative bento-glow">
           <div className="absolute bottom-[-50px] left-[-50px] w-[200px] h-[200px] bg-[#4169e1] opacity-10 blur-3xl rounded-full"></div>
           <div className="h-10 border-b border-border bg-[#0a0a0a] flex items-center px-4 justify-between">
             <div className="flex gap-2">
@@ -1081,7 +1103,7 @@
 
     function MockupThree() {
       return (
-        <div className="glass-panel border border-border rounded-xl overflow-hidden shadow-2xl relative bento-glow">
+        <div className="mockup-frame rounded-xl overflow-hidden relative bento-glow">
           <div className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] w-[150px] h-[150px] bg-[#dc143c] opacity-10 blur-3xl rounded-full pointer-events-none"></div>
           <div className="h-10 border-b border-border bg-[#0a0a0a] flex items-center px-4 justify-between">
             <div className="flex gap-2">
@@ -1122,7 +1144,7 @@
 
     function MockupFour() {
       return (
-        <div className="glass-panel border border-border rounded-xl overflow-hidden shadow-2xl relative bento-glow">
+        <div className="mockup-frame rounded-xl overflow-hidden relative bento-glow">
           <div className="absolute top-[-50px] right-[-50px] w-[200px] h-[200px] bg-[#27c93f] opacity-10 blur-3xl rounded-full"></div>
           <div className="h-10 border-b border-border bg-[#0a0a0a] flex items-center px-4 justify-between">
             <div className="flex gap-2">
@@ -1154,7 +1176,7 @@
 
     function MockupFive() {
       return (
-        <div className="glass-panel border border-border rounded-xl overflow-hidden shadow-2xl relative bento-glow">
+        <div className="mockup-frame rounded-xl overflow-hidden relative bento-glow">
           <div className="absolute bottom-[-50px] left-[-50px] w-[200px] h-[200px] bg-[#4169e1] opacity-10 blur-3xl rounded-full"></div>
           <div className="h-10 border-b border-border bg-[#0a0a0a] flex items-center px-4 justify-between">
             <div className="flex gap-2">
@@ -1192,7 +1214,7 @@
 
     function MockupSix() {
       return (
-        <div className="glass-panel border border-border rounded-xl overflow-hidden shadow-2xl relative bento-glow">
+        <div className="mockup-frame rounded-xl overflow-hidden relative bento-glow">
           <div className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] w-[150px] h-[150px] bg-primary opacity-5 blur-3xl rounded-full pointer-events-none"></div>
           <div className="h-10 border-b border-border bg-[#0a0a0a] flex items-center px-4 justify-between">
             <div className="flex gap-2">
