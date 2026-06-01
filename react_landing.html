@@ -1259,6 +1259,71 @@
       )
     }
 
+    // Tiny 3D voice waveform — a tilted bar-equalizer that ripples (custom AI voice).
+    function VoiceWave() {
+      const mountRef = useRef(null);
+      useEffect(() => {
+        const mount = mountRef.current;
+        if (!mount || !window.THREE) return;
+        const THREE = window.THREE;
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let renderer;
+        try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); }
+        catch (e) { return; }
+        const W = 40, H = 24;
+        renderer.setSize(W, H);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        mount.appendChild(renderer.domElement);
+        mount.querySelector('.wave-fallback')?.style.setProperty('display', 'none');
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
+        camera.position.set(0, 1.1, 4.2); camera.lookAt(0, 0, 0);
+        const group = new THREE.Group(); group.rotation.x = 0.25; scene.add(group);
+
+        const COUNT = 11, bars = [];
+        const barGeo = new THREE.BoxGeometry(0.18, 1, 0.18);
+        const mat = new THREE.MeshBasicMaterial({ color: 0xdc143c }); // red accent matches this panel
+        for (let i = 0; i < COUNT; i++) {
+          const b = new THREE.Mesh(barGeo, mat);
+          b.position.x = (i - (COUNT - 1) / 2) * 0.32;
+          group.add(b); bars.push(b);
+        }
+
+        const clock = new THREE.Clock();
+        let raf, running = true;
+        function tick() {
+          if (!running) return;
+          const t = clock.getElapsedTime();
+          bars.forEach((b, i) => {
+            const hgt = 0.25 + (Math.sin(t * 4 + i * 0.7) * 0.5 + 0.5) * 1.5;
+            b.scale.y = hgt;            // animate scale, not geometry (cheap)
+          });
+          renderer.render(scene, camera);
+          raf = requestAnimationFrame(tick);
+        }
+        if (reduce) renderer.render(scene, camera); else tick();
+        const onVis = () => { if (document.hidden) { running = false; cancelAnimationFrame(raf); } else if (!reduce) { running = true; tick(); } };
+        document.addEventListener('visibilitychange', onVis);
+
+        return () => {
+          running = false; cancelAnimationFrame(raf);
+          document.removeEventListener('visibilitychange', onVis);
+          barGeo.dispose(); mat.dispose(); renderer.dispose();
+          if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
+        };
+      }, []);
+      return (
+        <div ref={mountRef} className="w-10 h-6 relative flex items-center justify-center shrink-0" aria-hidden="true">
+          <span className="wave-fallback flex items-end gap-[2px] h-4">
+            <span className="w-[2px] h-2 bg-[#dc143c] animate-pulse"></span>
+            <span className="w-[2px] h-4 bg-[#dc143c] animate-pulse"></span>
+            <span className="w-[2px] h-3 bg-[#dc143c] animate-pulse"></span>
+          </span>
+        </div>
+      );
+    }
+
     function MockupThree() {
       return (
         <div className="mockup-frame rounded-xl overflow-hidden relative bento-glow">
@@ -1295,6 +1360,10 @@
             </div>
             
             <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#050505] to-transparent"></div>
+            <div className="absolute bottom-3 left-6 right-6 z-10 flex items-center gap-2 text-[#dc143c]">
+               <VoiceWave />
+               <span className="text-[10px] font-mono tracking-wide">Synthesizing custom brand voice</span>
+            </div>
           </div>
         </div>
       )
