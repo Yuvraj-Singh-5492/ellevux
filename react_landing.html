@@ -1690,6 +1690,133 @@
       )
     }
 
+    // Procedural 3D headset (built from Three.js geometry, no model file) — the
+    // receptionist icon as a lit, slowly-rotating, mouse-reactive showpiece.
+    function HeadsetShowcase() {
+      const mountRef = useRef(null);
+      useEffect(() => {
+        const mount = mountRef.current;
+        if (!mount || !window.THREE) return;
+        const THREE = window.THREE;
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let renderer;
+        try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); }
+        catch (e) { return; }
+        const w = () => mount.clientWidth, h = () => mount.clientHeight || 1;
+        renderer.setSize(w(), h());
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        mount.appendChild(renderer.domElement);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, w() / h(), 0.1, 100);
+        camera.position.set(0, 0, 6);
+
+        // Lighting — gives the metal surfaces real highlights
+        scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+        const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(4, 6, 5); scene.add(key);
+        const rimBlue = new THREE.PointLight(0x4169e1, 60, 30); rimBlue.position.set(-5, 2, 3); scene.add(rimBlue);
+        const rimPurple = new THREE.PointLight(0x8a2be2, 50, 30); rimPurple.position.set(5, -3, 2); scene.add(rimPurple);
+
+        const headset = new THREE.Group();
+        const metal = new THREE.MeshStandardMaterial({ color: 0x1a1a22, roughness: 0.35, metalness: 0.85 });
+        const accent = new THREE.MeshStandardMaterial({ color: 0x4169e1, roughness: 0.3, metalness: 0.6, emissive: 0x16306b, emissiveIntensity: 0.6 });
+
+        // Headband (top arc only) — a torus rotated, then we trim by scaling the group view
+        const band = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.16, 24, 80, Math.PI), metal);
+        band.rotation.z = Math.PI;            // arc on top
+        headset.add(band);
+
+        // Ear cups (capsules via cylinder + rounded caps using spheres)
+        function earCup(x) {
+          const g = new THREE.Group();
+          const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.62, 0.5, 40), metal);
+          cup.rotation.z = Math.PI / 2; g.add(cup);
+          const pad = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.16, 20, 40), accent);
+          pad.position.x = (x < 0 ? -0.28 : 0.28); pad.rotation.y = Math.PI / 2; g.add(pad);
+          g.position.set(x, -0.05, 0);
+          return g;
+        }
+        // connect cups to band ends
+        const left = earCup(-1.5); const right = earCup(1.5);
+        headset.add(left); headset.add(right);
+
+        // Mic boom (left side) — thin tube curving down to a tip
+        const boomCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(-1.5, -0.4, 0.3),
+          new THREE.Vector3(-1.4, -1.1, 0.7),
+          new THREE.Vector3(-0.7, -1.5, 0.9),
+        ]);
+        const boom = new THREE.Mesh(new THREE.TubeGeometry(boomCurve, 30, 0.06, 12, false), metal);
+        headset.add(boom);
+        const micTip = new THREE.Mesh(new THREE.SphereGeometry(0.13, 20, 20), accent);
+        micTip.position.set(-0.7, -1.5, 0.9); headset.add(micTip);
+
+        headset.rotation.x = 0.15;
+        scene.add(headset);
+
+        const target = { x: 0, y: 0 }, cur = { x: 0, y: 0 };
+        const onMove = (e) => {
+          const r = mount.getBoundingClientRect();
+          target.x = ((e.clientX - r.left) / r.width - 0.5) * 2;
+          target.y = ((e.clientY - r.top) / r.height - 0.5) * 2;
+        };
+        mount.addEventListener('pointermove', onMove, { passive: true });
+        mount.addEventListener('pointerleave', () => { target.x = 0; target.y = 0; });
+        const onResize = () => { camera.aspect = w() / h(); camera.updateProjectionMatrix(); renderer.setSize(w(), h()); };
+        window.addEventListener('resize', onResize);
+
+        const clock = new THREE.Clock();
+        let raf, running = true, started = false;
+        // Only run while the section is on screen (perf).
+        const io = new IntersectionObserver((es) => {
+          es.forEach(e => {
+            if (e.isIntersecting && !started && !reduce) { started = true; running = true; tick(); }
+            else if (!e.isIntersecting) { running = false; cancelAnimationFrame(raf); }
+            else if (e.isIntersecting && started && !running && !reduce) { running = true; tick(); }
+          });
+        }, { threshold: 0.15 });
+        io.observe(mount);
+
+        function tick() {
+          if (!running) return;
+          const t = clock.getElapsedTime();
+          cur.x += (target.x - cur.x) * 0.05;
+          cur.y += (target.y - cur.y) * 0.05;
+          headset.rotation.y = t * 0.35 + cur.x * 0.6;
+          headset.rotation.x = 0.15 + cur.y * 0.4;
+          micTip.material.emissiveIntensity = 0.4 + Math.sin(t * 3) * 0.3; // pulsing mic
+          renderer.render(scene, camera);
+          raf = requestAnimationFrame(tick);
+        }
+        renderer.render(scene, camera); // first static frame
+
+        return () => {
+          running = false; cancelAnimationFrame(raf); io.disconnect();
+          mount.removeEventListener('pointermove', onMove);
+          window.removeEventListener('resize', onResize);
+          scene.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+          renderer.dispose();
+          if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
+        };
+      }, []);
+      return (
+        <section className="py-28 px-6 border-t border-border relative overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#4169e1] opacity-[0.06] blur-[120px] rounded-full pointer-events-none"></div>
+          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
+            <div>
+              <div className="text-xs font-mono text-muted uppercase tracking-widest mb-4">The always-on front desk</div>
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-5">A receptionist that<br/>never sleeps, never quits.</h2>
+              <p className="text-muted text-lg leading-relaxed mb-6">One AI agent picks up every call, qualifies every lead, and books straight to your calendar — at 2pm or 2am. No salary, no sick days, no missed calls.</p>
+              <a href="demo.html" className="group inline-flex items-center gap-2 glass-panel border border-border text-primary px-6 py-3 rounded-lg font-semibold text-sm hover:border-[#333] hover:bg-white/[0.04] transition-all duration-200">
+                <i data-lucide="play" className="w-4 h-4 text-[#4169e1]"></i> Hear it in action
+              </a>
+            </div>
+            <div ref={mountRef} className="w-full h-[360px] md:h-[420px] cursor-grab active:cursor-grabbing" aria-hidden="true"></div>
+          </div>
+        </section>
+      );
+    }
+
     function CTA({ user, hasAgents }) {
       return (
         <section className="py-40 px-6 border-t border-border text-center relative overflow-hidden mt-32">
@@ -1826,6 +1953,7 @@
           <Hero user={user} hasAgents={hasAgents} />
           {!hasAgents && <MiniBentoGrid />}
           {!hasAgents && <AlternatingSections />}
+          {!hasAgents && <HeadsetShowcase />}
           <CTA user={user} hasAgents={hasAgents} />
           <Footer />
         </div>
