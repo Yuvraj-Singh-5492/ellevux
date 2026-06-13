@@ -46,6 +46,28 @@
     }
   }
   </script>
+  <!-- Capability gate: run the heavy scroll-3D hero ONLY on capable, non-mobile devices.
+       Phones, low-RAM / few-core devices, software (non-GPU) WebGL, and reduced-motion fall
+       back to the static hero + compact feature layout. Decided once, before React + the module. -->
+  <script>
+    window.ENABLE_3D = (function () {
+      try {
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+        if (Math.min(window.innerWidth, window.innerHeight) < 768) return false;            // phones / tiny viewports
+        if (navigator.deviceMemory && navigator.deviceMemory < 4) return false;              // low-RAM devices
+        if (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) return false;
+        var c = document.createElement('canvas');
+        var gl = c.getContext('webgl2') || c.getContext('webgl');
+        if (!gl) return false;
+        var soft = false, dbg = gl.getExtension('WEBGL_debug_renderer_info');
+        if (dbg) { var r = String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '').toLowerCase();
+          soft = r.indexOf('swiftshader') > -1 || r.indexOf('software') > -1 || r.indexOf('llvmpipe') > -1 || r.indexOf('basic render') > -1; }
+        var lose = gl.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext();      // free the probe context
+        return !soft;                                                                        // software WebGL (e.g. Brave w/o HW accel) -> off
+      } catch (e) { return false; }
+    })();
+    if (!window.ENABLE_3D) document.documentElement.classList.add('no-3d');
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
 
@@ -1070,10 +1092,13 @@
         }
       ];
 
+      // 3D beats only run on capable devices; without them the empty "shape column" + tall
+      // min-heights are pointless, so phones/fallback get a compact stacked list instead.
+      const enable3D = !!window.ENABLE_3D;
       return (
-        <div className="py-20 px-6 max-w-6xl mx-auto flex flex-col gap-32 pt-32">
+        <div className={`px-6 max-w-6xl mx-auto flex flex-col pt-32 ${enable3D ? 'py-20 gap-32' : 'py-12 gap-12'}`}>
           {sections.map((sec, i) => (
-            <div key={i} id={sec.id} className={`flex flex-col md:flex-row gap-16 items-center min-h-[50vh] ${sec.reverse ? 'md:flex-row-reverse' : ''}`}>
+            <div key={i} id={sec.id} className={`flex flex-col md:flex-row gap-16 items-center ${enable3D ? 'min-h-[50vh]' : ''} ${sec.reverse ? 'md:flex-row-reverse' : ''}`}>
               <div className="flex-1">
                 <div className="w-12 h-12 bg-[#111] border border-[#222] rounded-lg mb-6 flex items-center justify-center text-muted">
                   <Icon name={sec.icon} size={24} />
@@ -1084,9 +1109,7 @@
                    Explore capability <Icon name="arrow-right" size={16} />
                 </a>
               </div>
-              <div className="flex-1 w-full">
-                {sec.mockup}
-              </div>
+              {enable3D && <div className="flex-1 w-full"></div>}
             </div>
           ))}
         </div>
@@ -1831,7 +1854,7 @@
           <Hero user={user} hasAgents={hasAgents} />
           {!hasAgents && <MiniBentoGrid />}
           {!hasAgents && <AlternatingSections />}
-          {!hasAgents && <div id="feat-logo" className="min-h-[70vh]" aria-hidden="true"></div>}
+          {!hasAgents && window.ENABLE_3D && <div id="feat-logo" className="min-h-[70vh]" aria-hidden="true"></div>}
           <CTA user={user} hasAgents={hasAgents} />
           <Footer />
         </div>
@@ -1861,6 +1884,7 @@
     import { MeshSurfaceSampler } from 'three/addons/math/MeshSurfaceSampler.js';
 
     (function () {
+      if (!window.ENABLE_3D) return;   // capability gate: skip the heavy 3D (no renderer, no 5.86MB model) on phones / weak / software-WebGL / reduced-motion
       const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       const host = document.createElement('div');
