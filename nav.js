@@ -101,11 +101,11 @@
   // Marketing site: no login on this domain. Demo + signup only.
   function authDesktop() {
     return '<a class="ev-link" href="dashboard.html?demo">View Demo</a>' +
-           '<a class="ev-cta" href="signup.html">Get Started ' + SVG.arrowRight + "</a>";
+           '<a class="ev-cta" href="pricing.html">Get Started ' + SVG.arrowRight + "</a>";
   }
   function authMobile() {
     return '<a class="ev-mlink" href="dashboard.html?demo">View Demo ' + SVG.arrowUpRight + "</a>" +
-           '<a class="ev-mcta" href="signup.html">Get Started ' + SVG.arrowRight + "</a>";
+           '<a class="ev-mcta" href="pricing.html">Get Started ' + SVG.arrowRight + "</a>";
   }
 
   function wireSignOut() {

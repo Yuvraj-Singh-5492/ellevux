@@ -340,7 +340,7 @@
             {/* Right: desktop CTAs (marketing site — no login; live demo + signup) */}
             <div className="hidden md:flex items-center gap-2 text-sm font-medium">
               <a href="dashboard.html?demo" className={`px-3 py-2 rounded-lg text-muted hover:text-primary hover:bg-white/5 transition-colors ${focusRing}`}>View Demo</a>
-              <a href="signup.html" className={`group inline-flex items-center gap-1.5 bg-primary text-black pl-4 pr-3 py-2 rounded-lg font-semibold hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_rgba(255,255,255,0.4)] transition-all duration-200 ${focusRing}`}>
+              <a href="pricing.html" className={`group inline-flex items-center gap-1.5 bg-primary text-black pl-4 pr-3 py-2 rounded-lg font-semibold hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_rgba(255,255,255,0.4)] transition-all duration-200 ${focusRing}`}>
                 Get Started <Icon name="arrow-right" size={15} className="transition-transform duration-200 group-hover:translate-x-0.5" />
               </a>
             </div>
@@ -377,7 +377,7 @@
                   ))}
                   <div className="h-px bg-white/10 my-2" />
                   <a href="dashboard.html?demo" className="flex items-center justify-between px-4 py-3 rounded-xl text-base text-accent hover:bg-white/5 transition-colors">View Demo <Icon name="arrow-up-right" size={16} className="text-muted" /></a>
-                  <a href="signup.html" className="mt-1 flex items-center justify-center gap-2 bg-primary text-black px-4 py-3 rounded-xl font-semibold">Get Started <Icon name="arrow-right" size={16} /></a>
+                  <a href="pricing.html" className="mt-1 flex items-center justify-center gap-2 bg-primary text-black px-4 py-3 rounded-xl font-semibold">Get Started <Icon name="arrow-right" size={16} /></a>
                 </motion.div>
               </motion.div>
             )}
@@ -431,7 +431,7 @@
               The hyper-intelligent AI receptionist for service businesses. Answers in &lt;12s. Qualifies leads. Books directly to your calendar. 24/7.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-              <a href={user ? "dashboard.html" : "signup.html"} className="group inline-flex items-center gap-2 bg-primary text-black px-7 py-3 rounded-lg font-semibold text-sm hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-8px_rgba(255,255,255,0.45)] transition-all duration-200">
+              <a href={user ? "dashboard.html?demo" : "pricing.html"} className="group inline-flex items-center gap-2 bg-primary text-black px-7 py-3 rounded-lg font-semibold text-sm hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-8px_rgba(255,255,255,0.45)] transition-all duration-200">
                 {user ? "Enter Dashboard" : "Get Started"}
                 <Icon name="arrow-right" size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
               </a>
@@ -1714,7 +1714,7 @@
             </h2>
             <p className="text-muted text-xl max-w-2xl mx-auto mb-12">Stop missing calls. Start booking jobs. Join 500+ businesses automating their front desk with Ellevux.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-               <a href={user ? "dashboard.html" : "signup.html"} className="group inline-flex items-center gap-2 bg-primary text-black px-7 py-3 rounded-lg font-semibold text-sm hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-8px_rgba(255,255,255,0.45)] transition-all duration-200">
+               <a href={user ? "dashboard.html?demo" : "pricing.html"} className="group inline-flex items-center gap-2 bg-primary text-black px-7 py-3 rounded-lg font-semibold text-sm hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-8px_rgba(255,255,255,0.45)] transition-all duration-200">
                   {user ? "Enter Dashboard" : "Get Started"}
                   <Icon name="arrow-right" size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
                 </a>
@@ -1776,7 +1776,7 @@
                   <h4 className="text-xs font-mono uppercase tracking-widest text-muted mb-4">Try Ellevux</h4>
                   <ul className="space-y-3">
                     <li><a href="dashboard.html?demo" className="text-accent hover:text-primary transition-colors">View Demo</a></li>
-                    <li><a href="signup.html" className="text-accent hover:text-primary transition-colors">Get Started</a></li>
+                    <li><a href="pricing.html" className="text-accent hover:text-primary transition-colors">Get Started</a></li>
                   </ul>
                 </div>
               </div>
