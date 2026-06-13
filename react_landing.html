@@ -1881,7 +1881,7 @@
       try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); }
       catch (e) { return; }
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));   // cap DPR: big fill-rate win for full-screen particles + GLTF
       renderer.outputEncoding = THREE.sRGBEncoding;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.12;
@@ -1917,7 +1917,7 @@
       // ============================================================================
       // SAND → MANNEQUIN-BUST particle system (target sampled from mannequin_model; mesh never rendered)
       // ============================================================================
-      const N = window.innerWidth < 768 ? 2600 : (window.innerWidth < 1024 ? 4200 : 6500);
+      const N = window.innerWidth < 768 ? 2200 : (window.innerWidth < 1024 ? 3600 : 5200);
       const HEAD_H = window.innerWidth < 1024 ? 2.2 : 2.9;
       const DMAX = 0.35;
       const target = new Float32Array(N * 3);
@@ -2096,7 +2096,14 @@
 
       let targetReady = false;
       const nEye = 0;                                            // pure bust, no glowing eyes
-      for (let i = 0; i < N; i++) { isEye[i] = 0; seed[i] = Math.random(); }
+      // Precompute the per-particle scatter basis (was recomputed sin/cos/sqrt/floor every frame in updateParticles).
+      const scX = new Float32Array(N), scZ = new Float32Array(N), scU = new Float32Array(N), scR = new Float32Array(N), scY = new Float32Array(N);
+      for (let i = 0; i < N; i++) {
+        isEye[i] = 0;
+        const sd = seed[i] = Math.random();
+        const a = sd * 41.7, h1 = Math.sin(sd * 91.7) * 43758.5453, u = 2 * (h1 - Math.floor(h1)) - 1, sxy = Math.sqrt(1 - u * u);
+        scX[i] = sxy * Math.cos(a); scZ[i] = sxy * Math.sin(a); scU[i] = u; scR[i] = 0.1 + sd * 2.4; scY[i] = 0.25 + sd * 0.5;
+      }
       const FACE_YAW = -0.55;                                    // ~31° turn toward the viewer's left (3/4 view)
       function sampleMannequin(gltf) {
         let mesh = null; gltf.scene.updateMatrixWorld(true); gltf.scene.traverse(o => { if (o.isMesh && !mesh) mesh = o; });
@@ -2227,8 +2234,8 @@
           let x = startWorld[o], y = startWorld[o + 1], z = startWorld[o + 2];
           // stage 1a: phone DISINTEGRATES into a drifting sand field (same style as robot→cloud)
           if (sc1 > 0.001) {
-            const a = sd * 41.7, h1 = Math.sin(sd * 91.7) * 43758.5453, u = 2 * (h1 - Math.floor(h1)) - 1, sxy = Math.sqrt(1 - u * u), rad = sc1 * (0.1 + sd * 2.4);
-            x += sxy * Math.cos(a) * rad; y += u * rad * 0.9 - sc1 * (0.25 + sd * 0.5); z += sxy * Math.sin(a) * rad * 0.6;
+            const rad = sc1 * scR[i];
+            x += scX[i] * rad; y += scU[i] * rad * 0.9 - sc1 * scY[i]; z += scZ[i] * rad * 0.6;
             if (!reduce) { x += Math.sin(t * 0.6 + sd * 9) * 0.18 * sc1; y += Math.cos(t * 0.5 + sd * 5) * 0.18 * sc1; }
           }
           // stage 1b: drifting sand REASSEMBLES into the bust
@@ -2247,8 +2254,8 @@
             const F = FEAT[b];
             if (F.dis > 0.001) {                                // scatter the shape that lived at the previous beat
               const sc = smoothstep(F.dis);
-              const a = sd * 41.7, hh = Math.sin(sd * 91.7) * 43758.5453, u = 2 * (hh - Math.floor(hh)) - 1, sxy = Math.sqrt(1 - u * u), rad = sc * (0.1 + sd * 2.4);
-              x += sxy * Math.cos(a) * rad; y += u * rad * 0.9 - sc * (0.25 + sd * 0.5); z += sxy * Math.sin(a) * rad * 0.6;
+              const rad = sc * scR[i];
+              x += scX[i] * rad; y += scU[i] * rad * 0.9 - sc * scY[i]; z += scZ[i] * rad * 0.6;
               if (!reduce) { x += Math.sin(t * 0.6 + sd * 9) * 0.18 * sc; y += Math.cos(t * 0.5 + sd * 5) * 0.18 * sc; }
             }
             if (F.asm > 0.001) {                                // reassemble into this beat's shape
