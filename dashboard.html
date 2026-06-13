@@ -253,13 +253,92 @@
       { id:'d2', name:'Riley',  voice_id:'riley_v2',  user_id:'demo', status:'online', created_at:new Date(_now-9*_d).toISOString(), valid_until:new Date(_now+21*_d).toISOString() }
     ];
     const DEMO_CALLS = [
-      { id:'c1', created_at:new Date(_now-2*_h).toISOString(),  user_id:'demo', agent_id:'d1', caller_name:'John Doe',    caller_number:'+1 (555) 234-5678', duration_seconds:124, status:'completed', job_booked:true,  summary:'HVAC no-heat call. Qualified the issue and booked a maintenance visit for Tuesday 2pm.' },
-      { id:'c2', created_at:new Date(_now-5*_h).toISOString(),  user_id:'demo', agent_id:'d2', caller_name:'Sarah Smith', caller_number:'+1 (555) 987-6543', duration_seconds:86,  status:'completed', job_booked:true,  summary:'Quote request for a water-heater install. Captured details and scheduled an estimate.' },
-      { id:'c3', created_at:new Date(_now-9*_h).toISOString(),  user_id:'demo', agent_id:'d1', caller_name:'Mike Reyes',  caller_number:'+1 (555) 441-2200', duration_seconds:53,  status:'completed', job_booked:false, summary:'Pricing question on drain cleaning. Answered FAQs and sent a follow-up SMS.' },
-      { id:'c4', created_at:new Date(_now-22*_h).toISOString(), user_id:'demo', agent_id:'d2', caller_name:'Lisa Tran',   caller_number:'+1 (555) 778-1042', duration_seconds:201, status:'completed', job_booked:true,  summary:'Emergency burst pipe. Dispatched and booked a same-day visit.' },
-      { id:'c5', created_at:new Date(_now-_d-3*_h).toISOString(), user_id:'demo', agent_id:'d1', caller_name:'Unknown',  caller_number:'+1 (555) 300-9911', duration_seconds:0,   status:'missed',    job_booked:false, summary:'Missed call outside hours; auto-SMS sent with a booking link.' }
+      { id:'c1', created_at:new Date(_now-35*60000).toISOString(), user_id:'demo', agent_id:'d1', caller_name:'Lisa Tran', caller_number:'+1 (555) 019-2834', duration_seconds:48, status:'completed', job_booked:true, recording:'demo.mp3', summary:'Emergency leak. Qualified the issue, dispatched a tech, and booked a same-day visit.' },
+      { id:'c2', created_at:new Date(_now-2*_h).toISOString(),  user_id:'demo', agent_id:'d1', caller_name:'John Doe',    caller_number:'+1 (555) 234-5678', duration_seconds:124, status:'completed', job_booked:true,  summary:'HVAC no-heat call. Qualified the issue and booked a maintenance visit for Tuesday 2pm.' },
+      { id:'c3', created_at:new Date(_now-5*_h).toISOString(),  user_id:'demo', agent_id:'d2', caller_name:'Sarah Smith', caller_number:'+1 (555) 987-6543', duration_seconds:86,  status:'completed', job_booked:true,  summary:'Quote request for a water-heater install. Captured details and scheduled an estimate.' },
+      { id:'c4', created_at:new Date(_now-9*_h).toISOString(),  user_id:'demo', agent_id:'d1', caller_name:'Mike Reyes',  caller_number:'+1 (555) 441-2200', duration_seconds:53,  status:'completed', job_booked:false, summary:'Pricing question on drain cleaning. Answered FAQs and sent a follow-up SMS.' },
+      { id:'c5', created_at:new Date(_now-_d-3*_h).toISOString(), user_id:'demo', agent_id:'d2', caller_name:'Unknown',  caller_number:'+1 (555) 300-9911', duration_seconds:0,   status:'missed',    job_booked:false, summary:'Missed call outside hours; auto-SMS sent with a booking link.' }
     ];
     function demoNudge() { alert("You're viewing a live demo with sample data. Sign up to create and manage your own AI agents."); }
+
+    // Call-recording player — folds the old voice demo INTO the dashboard: a recorded call opens an audio + transcript popup.
+    function closeRec() {
+      const o = document.getElementById('rec-overlay');
+      if (o) { try { const a = o.querySelector('audio'); if (a) a.pause(); } catch (e) {} o.remove(); }
+    }
+    function openCallRecording(id) {
+      closeRec();
+      const c = (calls || []).find(x => x.id === id) || {};
+      const agentName = (agents.find(a => a.id === c.agent_id) || {}).name || 'Agent';
+      if (!document.getElementById('rec-style')) {
+        const st = document.createElement('style'); st.id = 'rec-style';
+        st.textContent = '@keyframes recwave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}.rec-bar{width:3px;border-radius:99px;background:#3554c4;}.rec-playing .rec-bar{background:#4169e1;animation:recwave 1.1s ease-in-out infinite}';
+        document.head.appendChild(st);
+      }
+      const tx = [
+        ['AI','call picked up','"Thank you for calling Apex Plumbing, this is the front desk. How can I help?"'],
+        ['C','caller','"Hi, I\'ve got water pouring out from under my sink, it\'s an emergency."'],
+        ['AI','issue detected','"Got it, that\'s an emergency. I can get a technician out to you today. What\'s the address?"'],
+        ['C','caller','"42 Oak Street."'],
+        ['AI','booking confirmed','"Perfect. A tech is booked for 2:30pm today and I\'ve texted you the confirmation. Anything else I can help with?"']
+      ];
+      const txHtml = tx.map(function (l) {
+        var ai = l[0] === 'AI';
+        return '<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;">'
+          + '<div style="width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;' + (ai ? 'background:rgba(65,105,225,.2);color:#6f8cff;' : 'background:#333;color:#fff;') + '">' + (ai ? 'AI' : 'C') + '</div>'
+          + '<div><span style="font-family:ui-monospace,monospace;font-size:10px;color:' + (ai ? '#6f8cff' : '#ffbd2e') + ';background:' + (ai ? 'rgba(65,105,225,.1)' : 'rgba(255,189,46,.1)') + ';border:1px solid ' + (ai ? 'rgba(65,105,225,.2)' : 'rgba(255,189,46,.2)') + ';border-radius:4px;padding:1px 6px;display:inline-block;margin-bottom:5px;">[ ' + l[1] + ' ]</span>'
+          + '<p style="margin:0;color:' + (ai ? '#e6e6e6' : '#fff') + ';line-height:1.5;font-size:13px;">' + l[2] + '</p></div></div>';
+      }).join('');
+      var bars = '';
+      for (var i = 0; i < 40; i++) bars += '<div class="rec-bar" style="height:' + (Math.sin(i * 0.5) * 12 + Math.random() * 16 + 8) + 'px;animation-delay:' + (i * 0.04) + 's;"></div>';
+      const ov = document.createElement('div');
+      ov.id = 'rec-overlay';
+      ov.style.cssText = 'position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:18px;font-family:Inter,sans-serif;';
+      ov.innerHTML =
+        '<div style="background:#0a0a0a;border:1px solid #1f1f1f;border-radius:20px;max-width:640px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.9);">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #1f1f1f;">'
+        + '<div><div style="font-weight:700;color:#fff;">' + (c.caller_name || 'Caller') + ' <span style="font-family:ui-monospace,monospace;font-size:11px;color:#888;">' + (c.caller_number || '') + '</span></div>'
+        + '<div style="font-size:11px;color:#888;margin-top:2px;">Handled by ' + agentName + ' &middot; ' + (c.duration_seconds || 0) + 's</div></div>'
+        + '<button onclick="closeRec()" aria-label="Close" style="background:transparent;border:0;color:#888;cursor:pointer;font-size:24px;line-height:1;padding:4px;">&times;</button>'
+        + '</div>'
+        + '<div style="padding:20px;">'
+        + '<div style="font-family:ui-monospace,monospace;font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.12em;margin-bottom:14px;">Call recording</div>'
+        + '<div style="background:#050505;border:1px solid #1f1f1f;border-radius:14px;padding:18px;margin-bottom:20px;">'
+        + '<div id="rec-wave" style="display:flex;align-items:center;justify-content:center;gap:3px;height:56px;margin-bottom:14px;">' + bars + '</div>'
+        + '<div id="rec-track" style="height:6px;border-radius:99px;background:#1f1f1f;position:relative;cursor:pointer;"><div id="rec-fill" style="position:absolute;left:0;top:0;height:100%;width:0%;border-radius:99px;background:#4169e1;"></div></div>'
+        + '<div style="display:flex;justify-content:space-between;font-family:ui-monospace,monospace;font-size:11px;color:#888;margin-top:8px;"><span id="rec-cur">0:00</span><span id="rec-dur">0:48</span></div>'
+        + '<div style="display:flex;align-items:center;justify-content:center;gap:22px;margin-top:14px;">'
+        + '<button id="rec-back" aria-label="Back 10s" style="background:transparent;border:0;color:#888;cursor:pointer;"><i data-lucide="rotate-ccw" style="width:20px;height:20px;"></i></button>'
+        + '<button id="rec-play" aria-label="Play" style="width:56px;height:56px;border-radius:50%;background:#fff;color:#000;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i data-lucide="play" style="width:24px;height:24px;margin-left:2px;"></i></button>'
+        + '<button id="rec-fwd" aria-label="Forward 10s" style="background:transparent;border:0;color:#888;cursor:pointer;"><i data-lucide="rotate-cw" style="width:20px;height:20px;"></i></button>'
+        + '</div></div>'
+        + '<div style="font-family:ui-monospace,monospace;font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;">Transcript</div>'
+        + txHtml
+        + '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;padding-top:14px;border-top:1px solid #1f1f1f;">'
+        + '<span style="font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;background:rgba(220,20,60,.1);color:#ff6b6b;border:1px solid rgba(220,20,60,.2);">Emergency detected</span>'
+        + '<span style="font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;background:rgba(39,201,63,.1);color:#27c93f;border:1px solid rgba(39,201,63,.2);">Slot booked</span>'
+        + '</div>'
+        + '<audio id="rec-audio" src="' + (c.recording || 'demo.mp3') + '" preload="metadata"></audio>'
+        + '</div></div>';
+      document.body.appendChild(ov);
+      lucide.createIcons();
+      ov.addEventListener('click', function (e) { if (e.target === ov) closeRec(); });
+      var audio = document.getElementById('rec-audio');
+      var playBtn = document.getElementById('rec-play'), wave = document.getElementById('rec-wave');
+      var fill = document.getElementById('rec-fill'), track = document.getElementById('rec-track');
+      var cur = document.getElementById('rec-cur'), dur = document.getElementById('rec-dur');
+      function fmt(s) { if (!isFinite(s)) return '0:00'; var m = Math.floor(s / 60), x = Math.floor(s % 60); return m + ':' + String(x).padStart(2, '0'); }
+      function setIcon(n) { playBtn.innerHTML = '<i data-lucide="' + n + '" style="width:24px;height:24px;' + (n === 'play' ? 'margin-left:2px;' : '') + '"></i>'; lucide.createIcons(); }
+      audio.addEventListener('loadedmetadata', function () { if (isFinite(audio.duration)) dur.textContent = fmt(audio.duration); });
+      playBtn.addEventListener('click', function () { if (audio.paused) audio.play(); else audio.pause(); });
+      audio.addEventListener('play', function () { setIcon('pause'); wave.classList.add('rec-playing'); });
+      audio.addEventListener('pause', function () { setIcon('play'); wave.classList.remove('rec-playing'); });
+      audio.addEventListener('timeupdate', function () { var p = audio.duration ? audio.currentTime / audio.duration * 100 : 0; fill.style.width = p + '%'; cur.textContent = fmt(audio.currentTime); });
+      audio.addEventListener('ended', function () { setIcon('play'); wave.classList.remove('rec-playing'); fill.style.width = '0%'; cur.textContent = '0:00'; audio.currentTime = 0; });
+      track.addEventListener('click', function (e) { var r = track.getBoundingClientRect(); var ratio = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); if (audio.duration) audio.currentTime = ratio * audio.duration; });
+      document.getElementById('rec-back').addEventListener('click', function () { audio.currentTime = Math.max(0, audio.currentTime - 10); });
+      document.getElementById('rec-fwd').addEventListener('click', function () { if (audio.duration) audio.currentTime = Math.min(audio.duration, audio.currentTime + 10); });
+    }
 
     // Tab Renderers
     const renderOverview = () => {
@@ -358,6 +437,7 @@
                       <div class="text-right flex flex-col items-end gap-1">
                         <div class="font-mono text-muted text-[10px]">${c.duration_seconds}s</div>
                         ${c.job_booked ? '<span class="text-[8px] bg-green-500/10 text-green-500 px-1 py-0.5 rounded font-bold border border-green-500/20 uppercase tracking-wide">Job Booked</span>' : ''}
+                        ${c.recording ? `<button onclick="openCallRecording('${c.id}')" class="text-[9px] inline-flex items-center gap-1 bg-[#4169e1]/15 text-[#6f8cff] px-1.5 py-0.5 rounded font-bold border border-[#4169e1]/30 uppercase tracking-wide hover:bg-[#4169e1]/25 transition-colors"><i data-lucide="play" class="w-2.5 h-2.5"></i> Play</button>` : ''}
                       </div>
                     </div>
                   `;
@@ -415,6 +495,7 @@
                       <td class="p-4">
                         <div class="font-semibold">${c.caller_name || 'Unknown'}</div>
                         <div class="text-xs text-muted font-mono mt-0.5">${c.caller_number || ''}</div>
+                        ${c.recording ? `<button onclick="openCallRecording('${c.id}')" class="mt-1.5 text-[11px] inline-flex items-center gap-1 text-[#6f8cff] hover:text-primary transition-colors"><i data-lucide="play" class="w-3 h-3"></i> Play recording</button>` : ''}
                       </td>
                       <td class="p-4 font-mono text-xs">${c.duration_seconds}s</td>
                       <td class="p-4">${statusBadge}</td>
@@ -769,6 +850,10 @@
       bar.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:14px;background:rgba(10,10,10,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid #2a2a2a;color:#e6e6e6;padding:9px 9px 9px 16px;border-radius:999px;box-shadow:0 14px 40px -12px rgba(0,0,0,.85);font-family:Inter,sans-serif;font-size:13px;font-weight:500;';
       bar.innerHTML = '<span style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#27c93f;box-shadow:0 0 8px #27c93f;"></span>Live demo &middot; sample data</span><a href="signup.html" style="background:#fff;color:#000;text-decoration:none;font-weight:600;padding:7px 14px;border-radius:999px;">Get started &rarr;</a>';
       document.body.appendChild(bar);
+      // ?demo&play deep-link (from "Hear a live call") -> auto-open the recorded call
+      if (new URLSearchParams(location.search).has('play')) {
+        setTimeout(function () { var r = (DEMO_CALLS.find(function (c) { return c.recording; }) || {}).id; if (r) openCallRecording(r); }, 450);
+      }
     }
   </script>
 </body>
