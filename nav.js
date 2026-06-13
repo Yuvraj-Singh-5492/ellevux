@@ -58,7 +58,7 @@
   function isActive(href) { return href.toLowerCase() === path ? " active" : ""; }
 
   var LINKS = [
-    { href: "docs.html", label: "Docs" },
+    { href: "docs.html", label: "How it works" },
     { href: "pricing.html", label: "Pricing" },
     { href: "changelog.html", label: "Changelog" }
   ];
@@ -98,20 +98,13 @@
   document.body.appendChild(mobile);
 
   // ---- Auth-aware button rendering ----
-  function authDesktop(loggedIn) {
-    if (loggedIn) {
-      return '<a class="ev-link" href="dashboard.html">Dashboard</a>' +
-             '<a class="ev-cta" href="#" id="ev-signout">Sign Out ' + SVG.arrowRight + "</a>";
-    }
-    return '<a class="ev-link" href="login.html">Login</a>' +
+  // Marketing site: no login on this domain. Demo + signup only.
+  function authDesktop() {
+    return '<a class="ev-link" href="dashboard.html?demo">View Demo</a>' +
            '<a class="ev-cta" href="signup.html">Get Started ' + SVG.arrowRight + "</a>";
   }
-  function authMobile(loggedIn) {
-    if (loggedIn) {
-      return '<a class="ev-mlink" href="dashboard.html">Dashboard ' + SVG.arrowUpRight + "</a>" +
-             '<a class="ev-mcta" href="#" id="ev-signout-m">Sign Out ' + SVG.arrowRight + "</a>";
-    }
-    return '<a class="ev-mlink" href="login.html">Login ' + SVG.arrowUpRight + "</a>" +
+  function authMobile() {
+    return '<a class="ev-mlink" href="dashboard.html?demo">View Demo ' + SVG.arrowUpRight + "</a>" +
            '<a class="ev-mcta" href="signup.html">Get Started ' + SVG.arrowRight + "</a>";
   }
 
@@ -128,21 +121,13 @@
     if (m) m.addEventListener("click", out);
   }
 
-  function renderAuth(loggedIn) {
-    document.getElementById("ellevux-auth").innerHTML = authDesktop(loggedIn);
+  function renderAuth() {
+    document.getElementById("ellevux-auth").innerHTML = authDesktop();
     document.getElementById("ellevux-sheet").innerHTML =
-      mobileLinks() + '<div class="ev-mdivider"></div>' + authMobile(loggedIn);
-    wireSignOut();
+      mobileLinks() + '<div class="ev-mdivider"></div>' + authMobile();
   }
 
-  // Initial render (logged-out), then upgrade if a Supabase session exists.
-  renderAuth(false);
-  if (window.supabaseClient && window.supabaseClient.auth) {
-    window.supabaseClient.auth.getSession().then(function (res) {
-      var session = res && res.data ? res.data.session : null;
-      renderAuth(!!session);
-    }).catch(function () { /* stay logged-out */ });
-  }
+  renderAuth();   // marketing site: static demo + signup, no Supabase session dependency
 
   // ---- Scroll glass ----
   var nav = header.querySelector(".ev-nav");

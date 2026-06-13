@@ -245,6 +245,22 @@
     let calls = [];
     let userEmail = '';
 
+    // ---- Demo mode (no login): dashboard.html?demo shows the console pre-filled with sample data ----
+    const DEMO = new URLSearchParams(location.search).has('demo');
+    const _now = Date.now(), _h = 3600000, _d = 86400000;
+    const DEMO_AGENTS = [
+      { id:'d1', name:'Jordan', voice_id:'jordan_v4', user_id:'demo', status:'online', created_at:new Date(_now-2*_d).toISOString(), valid_until:new Date(_now+28*_d).toISOString() },
+      { id:'d2', name:'Riley',  voice_id:'riley_v2',  user_id:'demo', status:'online', created_at:new Date(_now-9*_d).toISOString(), valid_until:new Date(_now+21*_d).toISOString() }
+    ];
+    const DEMO_CALLS = [
+      { id:'c1', created_at:new Date(_now-2*_h).toISOString(),  user_id:'demo', agent_id:'d1', caller_name:'John Doe',    caller_number:'+1 (555) 234-5678', duration_seconds:124, status:'completed', job_booked:true,  summary:'HVAC no-heat call. Qualified the issue and booked a maintenance visit for Tuesday 2pm.' },
+      { id:'c2', created_at:new Date(_now-5*_h).toISOString(),  user_id:'demo', agent_id:'d2', caller_name:'Sarah Smith', caller_number:'+1 (555) 987-6543', duration_seconds:86,  status:'completed', job_booked:true,  summary:'Quote request for a water-heater install. Captured details and scheduled an estimate.' },
+      { id:'c3', created_at:new Date(_now-9*_h).toISOString(),  user_id:'demo', agent_id:'d1', caller_name:'Mike Reyes',  caller_number:'+1 (555) 441-2200', duration_seconds:53,  status:'completed', job_booked:false, summary:'Pricing question on drain cleaning. Answered FAQs and sent a follow-up SMS.' },
+      { id:'c4', created_at:new Date(_now-22*_h).toISOString(), user_id:'demo', agent_id:'d2', caller_name:'Lisa Tran',   caller_number:'+1 (555) 778-1042', duration_seconds:201, status:'completed', job_booked:true,  summary:'Emergency burst pipe. Dispatched and booked a same-day visit.' },
+      { id:'c5', created_at:new Date(_now-_d-3*_h).toISOString(), user_id:'demo', agent_id:'d1', caller_name:'Unknown',  caller_number:'+1 (555) 300-9911', duration_seconds:0,   status:'missed',    job_booked:false, summary:'Missed call outside hours; auto-SMS sent with a booking link.' }
+    ];
+    function demoNudge() { alert("You're viewing a live demo with sample data. Sign up to create and manage your own AI agents."); }
+
     // Tab Renderers
     const renderOverview = () => {
       const activeAgentsCount = agents.filter(a => a.status === 'online' || (a.status === 'cancelling' && a.valid_until && new Date(a.valid_until) >= new Date())).length;
@@ -603,6 +619,7 @@
 
     // DB Operations
     async function fetchAgents() {
+      if (DEMO) { agents = DEMO_AGENTS.slice(); calls = DEMO_CALLS.slice(); switchTab(currentTab); return; }
       const { data: agentsData, error: agentsError } = await window.supabaseClient.from('agents').select('*').order('created_at', { ascending: false });
       if (agentsError) console.error('Error fetching agents:', agentsError);
       else agents = agentsData || [];
@@ -615,6 +632,7 @@
     }
 
     async function deleteAgent(id, forceHardDelete = false) {
+      if (DEMO) { demoNudge(); return; }
       if (forceHardDelete) {
         if (!confirm("Permanently delete this agent? This action cannot be undone.")) return;
         const { error } = await window.supabaseClient.from('agents').delete().eq('id', id);
@@ -629,6 +647,7 @@
     }
 
     async function restoreAgent(id) {
+      if (DEMO) { demoNudge(); return; }
       if (!confirm("Restore this agent's active subscription?")) return;
       const { error } = await window.supabaseClient.from('agents').update({ status: 'online' }).eq('id', id);
       if (error) alert(error.message);
@@ -645,6 +664,7 @@
     const initFormListeners = () => {
       document.getElementById('agent-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (DEMO) { demoNudge(); return; }
         const name = document.getElementById('agent-name').value;
         const voice = document.getElementById('agent-voice').value;
         
@@ -676,6 +696,7 @@
 
       document.getElementById('edit-agent-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (DEMO) { demoNudge(); return; }
         const id = document.getElementById('edit-agent-id').value;
         const name = document.getElementById('edit-agent-name').value;
         const voice = document.getElementById('edit-agent-voice').value;
@@ -686,6 +707,14 @@
     };
 
     async function checkUser() {
+      if (DEMO) {
+        userEmail = 'demo@ellevux.com';
+        document.getElementById('userName').innerText = 'Demo Workspace';
+        document.getElementById('userEmail').innerText = 'sample data';
+        if (document.getElementById('welcomeName')) document.getElementById('welcomeName').innerText = 'there';
+        document.getElementById('userInitials').innerText = 'DW';
+        return;
+      }
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       if (!session) { window.location.href = 'login.html'; return; }
       userEmail = session.user.email;
@@ -733,6 +762,14 @@
     checkUser();
     fetchAgents();
     initFormListeners();
+
+    // Floating "live demo" pill + Get Started CTA (demo mode only)
+    if (DEMO) {
+      const bar = document.createElement('div');
+      bar.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:14px;background:rgba(10,10,10,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid #2a2a2a;color:#e6e6e6;padding:9px 9px 9px 16px;border-radius:999px;box-shadow:0 14px 40px -12px rgba(0,0,0,.85);font-family:Inter,sans-serif;font-size:13px;font-weight:500;';
+      bar.innerHTML = '<span style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#27c93f;box-shadow:0 0 8px #27c93f;"></span>Live demo &middot; sample data</span><a href="signup.html" style="background:#fff;color:#000;text-decoration:none;font-weight:600;padding:7px 14px;border-radius:999px;">Get started &rarr;</a>';
+      document.body.appendChild(bar);
+    }
   </script>
 </body>
 </html>
