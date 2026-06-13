@@ -36,7 +36,16 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+  <!-- ES-module three for the scroll-morph hero overlay (GLTFLoader/MeshSurfaceSampler). The old UMD three.min.js
+       was removed to cut load — the six small mockup 3D accents now fall back to their lightweight CSS placeholders. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/"
+    }
+  }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
 
@@ -393,9 +402,7 @@
       return (
         <div className="absolute inset-x-0 top-0 h-[820px] overflow-hidden pointer-events-none z-0">
           <div className="absolute inset-0 bg-gradient-to-br from-[rgba(138,43,226,0.06)] via-transparent to-[rgba(65,105,225,0.06)] blur-3xl" />
-          <ElegantShape delay={0.3} width={600} height={140} rotate={12} gradient="from-[rgba(138,43,226,0.18)]" className="left-[-10%] md:left-[-5%] top-[15%] md:top-[18%]" />
           <ElegantShape delay={0.5} width={500} height={120} rotate={-15} gradient="from-[rgba(65,105,225,0.18)]" className="right-[-5%] md:right-[0%] top-[46%] md:top-[48%]" />
-          <ElegantShape delay={0.4} width={300} height={80} rotate={-8} gradient="from-[rgba(109,40,217,0.16)]" className="left-[3%] md:left-[8%] top-[60%] md:top-[62%]" />
           <ElegantShape delay={0.6} width={200} height={60} rotate={20} gradient="from-[rgba(168,85,247,0.14)]" className="right-[12%] md:right-[18%] top-[9%] md:top-[13%]" />
           <ElegantShape delay={0.7} width={150} height={40} rotate={-25} gradient="from-[rgba(59,130,246,0.14)]" className="left-[18%] md:left-[24%] top-[4%] md:top-[8%]" />
           <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black to-transparent" />
@@ -1015,7 +1022,7 @@
 
     function MiniBentoGrid() {
       return (
-        <section className="py-32 px-6 max-w-6xl mx-auto border-t border-border mt-32 relative overflow-hidden">
+        <section id="features-bento" className="py-32 px-6 max-w-6xl mx-auto border-t border-border mt-32 relative overflow-hidden">
           <div className="feat-ambient"><span className="fa1"></span><span className="fa2"></span></div>
           <div className="relative z-10"><FeaturesList items={FEATURE_ITEMS} /></div>
         </section>
@@ -1025,53 +1032,51 @@
     function AlternatingSections() {
       const sections = [
         {
-          title: "Google Calendar Sync",
-          desc: "Every booking lands in your Google Calendar automatically. Works with your existing schedule, respects your availability, never double-books.",
-          mockup: <MockupTwo />,
-          link: "docs.html#google-calendar"
+          id: "feat-voice",
+          title: "Custom AI Voice & Tone",
+          desc: "The AI is trained to sound like your business — your name, your tone, your FAQs. Callers won't know it's AI unless you tell them.",
+          icon: "mic",
+          link: "docs.html#voice-customization"
         },
         {
+          id: "feat-sms",
           title: "SMS Follow-Up Sequences",
           desc: "If a lead doesn't book on the call, the AI follows up via SMS automatically — multiple touchpoints over 24-48 hours until they convert.",
-          mockup: <MockupFour />,
+          icon: "message-square",
           reverse: true,
           link: "docs.html#sms-automation"
         },
         {
-          title: "Salesforce / HubSpot CRM Sync",
-          desc: "Every lead, call, and booking is logged directly into your CRM automatically. Full contact details and qualification data synced in real time.",
-          mockup: <MockupOne />,
-          link: "docs.html#crm-sync"
-        },
-        {
+          id: "feat-routing",
           title: "Multi-Location Routing",
           desc: "Routes inbound calls to the right location, team, or calendar based on the caller's area. One phone number, multiple locations.",
-          mockup: <MockupFive />,
-          reverse: true,
+          icon: "map-pin",
           link: "docs.html#routing"
         },
         {
-          title: "Custom AI Voice & Tone",
-          desc: "The AI is trained to sound like your business — your name, your tone, your FAQs. Callers won't know it's AI unless you tell them.",
-          mockup: <MockupThree />,
-          link: "docs.html#voice-customization"
+          id: "feat-crm",
+          title: "Salesforce / HubSpot CRM Sync",
+          desc: "Every lead, call, and booking is logged directly into your CRM automatically. Full contact details and qualification data synced in real time.",
+          icon: "database",
+          reverse: true,
+          link: "docs.html#crm-sync"
         },
         {
-          title: "White-Label Solution",
-          desc: "Deploy Ellevux under your own brand. For agencies and franchises who want the technology without the Ellevux name attached.",
-          mockup: <MockupSix />,
-          reverse: true,
-          link: "docs.html#white-label"
+          id: "feat-calendar",
+          title: "Google Calendar Sync",
+          desc: "Every booking lands in your Google Calendar automatically. Works with your existing schedule, respects your availability, never double-books.",
+          icon: "calendar",
+          link: "docs.html#google-calendar"
         }
       ];
 
       return (
         <div className="py-20 px-6 max-w-6xl mx-auto flex flex-col gap-32 pt-32">
           {sections.map((sec, i) => (
-            <div key={i} className={`flex flex-col md:flex-row gap-16 items-center ${sec.reverse ? 'md:flex-row-reverse' : ''}`}>
+            <div key={i} id={sec.id} className={`flex flex-col md:flex-row gap-16 items-center min-h-[50vh] ${sec.reverse ? 'md:flex-row-reverse' : ''}`}>
               <div className="flex-1">
                 <div className="w-12 h-12 bg-[#111] border border-[#222] rounded-lg mb-6 flex items-center justify-center text-muted">
-                  <Icon name={i === 0 ? "user-check" : i === 1 ? "calendar" : "search"} size={24} />
+                  <Icon name={sec.icon} size={24} />
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-6 leading-tight">{sec.title}</h2>
                 <p className="text-muted text-lg leading-relaxed">{sec.desc}</p>
@@ -1826,14 +1831,618 @@
           <Hero user={user} hasAgents={hasAgents} />
           {!hasAgents && <MiniBentoGrid />}
           {!hasAgents && <AlternatingSections />}
+          {!hasAgents && <div id="feat-logo" className="min-h-[70vh]" aria-hidden="true"></div>}
           <CTA user={user} hasAgents={hasAgents} />
           <Footer />
         </div>
       );
     }
 
+    // Scroll-driven 3D (iPhone 15 Pro → core-orb morph) lives in the self-contained
+    // ES-module overlay just before </body> — it builds its own renderer/scene so it can
+    // use GLTFLoader without disturbing the UMD window.THREE used by the small accents above.
+
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
+  </script>
+
+  <!-- ============================================================================
+       Scroll-driven 3D hero: the iPhone 15 Pro (origin) dissolves into titanium
+       "sand" that streams across the page and reassembles into a mannequin bust
+       (the Ellevux agent) on the right, anchored above the #features-bento section.
+       Self-contained ES module (own three instance so GLTFLoader + MeshSurfaceSampler
+       work); fixed overlay at z-5, click-through. Models (CC-BY-4.0): iphone_model
+       (polyman), mannequin_model (CHMIL Studio) — credit both when public.
+       ============================================================================ -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { MeshSurfaceSampler } from 'three/addons/math/MeshSurfaceSampler.js';
+
+    (function () {
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const host = document.createElement('div');
+      host.id = 'ellevux-scroll3d';
+      host.setAttribute('aria-hidden', 'true');
+      host.style.cssText = 'position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0.92';
+      document.body.appendChild(host);
+
+      const clamp01 = x => Math.min(1, Math.max(0, x));
+      const lerp = (a, b, x) => a + (b - a) * x;
+      const smooth = (a, b, x) => { x = clamp01((x - a) / (b - a)); return x * x * (3 - 2 * x); };
+      const smoothstep = x => { x = clamp01(x); return x * x * (3 - 2 * x); };
+      const rnd = () => Math.random() * 2 - 1;
+      const lin = hex => new THREE.Color(hex).convertSRGBToLinear();
+      const anchorX = () => (window.innerWidth < 1024 ? -1.85 : -3.2);   // phone rest spot: left negative space
+
+      let renderer;
+      try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); }
+      catch (e) { return; }
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.12;
+      host.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(0, 0, 6);
+      const halfH = Math.tan((45 * Math.PI / 180) / 2) * 6;   // visible world half-height at z=0
+
+      // environment reflections (premium glass/titanium) — optional, degrades to lights only
+      try {
+        const pmrem = new THREE.PMREMGenerator(renderer);
+        const room = new RoomEnvironment();
+        scene.environment = pmrem.fromScene(room, 0.04).texture;
+        room.dispose && room.dispose();
+      } catch (e) { /* lights carry it */ }
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.32));
+      const key = new THREE.DirectionalLight(0xffffff, 1.4); key.position.set(4, 6, 6); scene.add(key);
+      const fill = new THREE.DirectionalLight(0xffffff, 0.55); fill.position.set(-5, 1, 3); scene.add(fill);
+      // soft brand rims — kept low so they don't speckle the frosted back glass
+      const rimBlue = new THREE.PointLight(0x4169e1, 7, 40); rimBlue.position.set(-6, 3, -2); scene.add(rimBlue);
+      const rimPurple = new THREE.PointLight(0x8a2be2, 6, 40); rimPurple.position.set(6, -3, -2); scene.add(rimPurple);
+
+      // ---- PHONE ----
+      const phoneGroup = new THREE.Group(); scene.add(phoneGroup); phoneGroup.position.set(anchorX(), 0.1, 0);
+      const phoneMats = [];
+      let baseScale = 1, modelH = 0, phoneReady = false;
+      const fitH = () => (window.innerWidth < 1024 ? 2.0 : 2.7);
+      const setPhoneOpacity = pf => { for (let i = 0; i < phoneMats.length; i++) phoneMats[i].opacity = phoneMats[i]._base * pf; };
+
+      // ============================================================================
+      // SAND → MANNEQUIN-BUST particle system (target sampled from mannequin_model; mesh never rendered)
+      // ============================================================================
+      const N = window.innerWidth < 768 ? 2600 : (window.innerWidth < 1024 ? 4200 : 6500);
+      const HEAD_H = window.innerWidth < 1024 ? 2.2 : 2.9;
+      const DMAX = 0.35;
+      const target = new Float32Array(N * 3);
+      const isEye = new Uint8Array(N);
+      const seed = new Float32Array(N);
+      const delay = new Float32Array(N);
+
+      // ---- SECOND target: CHAT BUBBLE (procedural; particles re-form into it after the bust) ----
+      const CLOUD_W = window.innerWidth < 1024 ? 1.9 : 2.5;
+      const target2 = new Float32Array(N * 3);
+      const delay2 = new Float32Array(N);
+      function bubbleTail(o) {
+        const A = [-0.10, -0.80], B = [0.30, -0.80], C = [-0.50, -1.35];           // small triangle tail, bottom-left
+        let u = Math.random(), v = Math.random(); if (u + v > 1) { u = 1 - u; v = 1 - v; }
+        o[0] = A[0] + u * (B[0] - A[0]) + v * (C[0] - A[0]); o[1] = A[1] + u * (B[1] - A[1]) + v * (C[1] - A[1]); o[2] = (Math.random() - 0.5) * 0.06;
+      }
+      function cloudPoint(o) {
+        const BW = 1.35, BH = 0.82, cr = 0.42; let x, y, ok = false, tries = 0;
+        do {
+          x = (Math.random() * 2 - 1) * BW; y = (Math.random() * 2 - 1) * BH;
+          const dx = Math.max(Math.abs(x) - (BW - cr), 0), dy = Math.max(Math.abs(y) - (BH - cr), 0);
+          ok = (dx * dx + dy * dy) <= cr * cr;                                       // inside rounded rect
+          if (ok) for (const cx of [-0.5, 0, 0.5]) { if ((x - cx) ** 2 + (y - 0.05) ** 2 < 0.16 * 0.16) { ok = false; break; } }   // 3 typing-dot holes
+          tries++;
+        } while (!ok && tries < 10);
+        o[0] = x; o[1] = y; o[2] = (Math.random() - 0.5) * 0.06;
+      }
+      (function buildCloud() {
+        const cTail = Math.round(N * 0.10); let idx = 0; const o = [0, 0, 0];
+        for (let k = 0; k < cTail && idx < N; k++, idx++) { bubbleTail(o); target2[idx*3] = o[0]; target2[idx*3+1] = o[1]; target2[idx*3+2] = o[2]; }
+        while (idx < N) { cloudPoint(o); target2[idx*3] = o[0]; target2[idx*3+1] = o[1]; target2[idx*3+2] = o[2]; idx++; }
+        let mnx = 1e9, mny = 1e9, mxx = -1e9, mxy = -1e9;
+        for (let i = 0; i < N; i++) { const x = target2[i*3], y = target2[i*3+1]; if (x<mnx)mnx=x; if(y<mny)mny=y; if(x>mxx)mxx=x; if(y>mxy)mxy=y; }
+        const cx = (mnx+mxx)/2, cy = (mny+mxy)/2, k = CLOUD_W / (mxx - mnx);
+        for (let i = 0; i < N; i++) {
+          target2[i*3] = (target2[i*3]-cx)*k; target2[i*3+1] = (target2[i*3+1]-cy)*k; target2[i*3+2] *= k;
+          delay2[i] = DMAX * clamp01(0.5 + target2[i*3] / 3 + Math.random() * 0.25);    // left settles first
+        }
+      })();
+
+      // ---- THIRD target: CALENDAR with a booked slot (procedural; the 4th beat after the chat bubble) ----
+      const CAL_W = window.innerWidth < 1024 ? 2.0 : 2.6;
+      const target3 = new Float32Array(N * 3);
+      const delay3 = new Float32Array(N);
+      (function buildCalendar() {
+        const BW = 1.1, BH = 1.0;
+        const colX = [-0.68, -0.34, 0, 0.34, 0.68], rowY = [0.28, -0.06, -0.40, -0.74];
+        const bookC = 3, bookR = 1;                                  // the "booked" cell
+        let idx = 0; const o = [0, 0, 0];
+        const T = () => { target3[idx*3] = o[0]; target3[idx*3+1] = o[1]; target3[idx*3+2] = o[2]; idx++; };
+        const cFrame = Math.round(N * 0.26), cHeader = Math.round(N * 0.16), cBooked = Math.round(N * 0.12);
+        for (let k = 0; k < cFrame && idx < N; k++) {                // outer frame (rectangle border)
+          const side = Math.floor(Math.random() * 4), th = (Math.random() - 0.5) * 0.06;
+          if (side === 0) { o[0] = (Math.random() * 2 - 1) * BW; o[1] = BH + th; }
+          else if (side === 1) { o[0] = (Math.random() * 2 - 1) * BW; o[1] = -BH + th; }
+          else if (side === 2) { o[0] = -BW + th; o[1] = (Math.random() * 2 - 1) * BH; }
+          else { o[0] = BW + th; o[1] = (Math.random() * 2 - 1) * BH; }
+          o[2] = (Math.random() - 0.5) * 0.06; T();
+        }
+        for (let k = 0; k < cHeader && idx < N; k++) { o[0] = (Math.random() * 2 - 1) * (BW * 0.9); o[1] = 0.56 + Math.random() * 0.36; o[2] = (Math.random() - 0.5) * 0.06; T(); }   // header strip
+        for (let k = 0; k < cBooked && idx < N; k++) { const a = Math.random() * Math.PI * 2, rr = 0.16 * (0.55 + 0.45 * Math.random()); o[0] = colX[bookC] + Math.cos(a) * rr; o[1] = rowY[bookR] + Math.sin(a) * rr; o[2] = (Math.random() - 0.5) * 0.05; T(); }   // booked-cell highlight
+        let cell = 0;
+        while (idx < N) { const c = cell % 5, r = Math.floor(cell / 5) % 4, a = Math.random() * Math.PI * 2, rr = 0.085 * Math.sqrt(Math.random()); o[0] = colX[c] + Math.cos(a) * rr; o[1] = rowY[r] + Math.sin(a) * rr; o[2] = (Math.random() - 0.5) * 0.05; T(); cell++; }   // grid day-dots
+        let mnx = 1e9, mny = 1e9, mxx = -1e9, mxy = -1e9;
+        for (let i = 0; i < N; i++) { const x = target3[i*3], y = target3[i*3+1]; if (x<mnx)mnx=x; if(y<mny)mny=y; if(x>mxx)mxx=x; if(y>mxy)mxy=y; }
+        const cx = (mnx+mxx)/2, cy = (mny+mxy)/2, k = CAL_W / (mxx - mnx);
+        for (let i = 0; i < N; i++) {
+          target3[i*3] = (target3[i*3]-cx)*k; target3[i*3+1] = (target3[i*3+1]-cy)*k; target3[i*3+2] *= k;
+          delay3[i] = DMAX * clamp01(0.5 + target3[i*3+1] / 3 + Math.random() * 0.25);   // bottom settles first
+        }
+      })();
+
+      // ---- VOICE WAVEFORM (beat 1 · Custom AI Voice & Tone · RIGHT) ----
+      const VOICE_W = window.innerWidth < 1024 ? 2.0 : 2.7;
+      const tVoice = new Float32Array(N * 3);
+      const dVoice = new Float32Array(N);
+      (function buildWaveform() {
+        const BARS = 17, halfW = 1.3, barGap = (halfW * 2) / (BARS - 1), barW = barGap * 0.28, capR = barGap * 0.28, maxH = 0.95;
+        const h = [];
+        for (let b = 0; b < BARS; b++) {                       // smooth symmetric equalizer: tall mid, gentle organic wobble (no high-freq noise)
+          const u = b / (BARS - 1);
+          const hump = Math.pow(1 - Math.abs(u - 0.5) * 2, 0.65);
+          let e = 0.16 + 0.84 * hump + 0.10 * Math.sin(u * 7.5 + 0.6);
+          h.push(Math.max(0.13, Math.min(1, e)));
+        }
+        let sum = 0; for (const e of h) sum += e;
+        let idx = 0; const o = [0, 0, 0];
+        const T = () => { tVoice[idx*3] = o[0]; tVoice[idx*3+1] = o[1]; tVoice[idx*3+2] = o[2]; idx++; };
+        const cLine = Math.round(N * 0.05);                    // thin center baseline
+        for (let k = 0; k < cLine && idx < N; k++) { o[0] = (Math.random()*2-1)*halfW; o[1] = (Math.random()-0.5)*0.03; o[2] = (Math.random()-0.5)*0.03; T(); }
+        const rest = N - idx;
+        for (let b = 0; b < BARS; b++) {
+          const x0 = -halfW + b * barGap, bh = h[b] * maxH;
+          let cnt = (b === BARS - 1) ? (N - idx) : Math.round(rest * (h[b] / sum));
+          for (let k = 0; k < cnt && idx < N; k++) {
+            const yy = (Math.random()*2-1) * bh;               // mirrored top/bottom around the baseline
+            let xw = barW; const over = Math.abs(yy) - (bh - capR);
+            if (over > 0) xw = Math.sqrt(Math.max(0, capR*capR - over*over));   // rounded bar caps → clean pill shape
+            o[0] = x0 + (Math.random()*2-1) * xw; o[1] = yy; o[2] = (Math.random()-0.5)*0.04; T();
+          }
+        }
+        while (idx < N) { o[0] = (Math.random()*2-1)*halfW; o[1] = (Math.random()*2-1)*0.04; o[2] = 0; T(); }
+        let mnx=1e9,mny=1e9,mxx=-1e9,mxy=-1e9;
+        for (let i=0;i<N;i++){const x=tVoice[i*3],y=tVoice[i*3+1]; if(x<mnx)mnx=x;if(y<mny)mny=y;if(x>mxx)mxx=x;if(y>mxy)mxy=y;}
+        const cx=(mnx+mxx)/2, cy=(mny+mxy)/2, k=VOICE_W/(mxx-mnx);
+        for (let i=0;i<N;i++){ tVoice[i*3]=(tVoice[i*3]-cx)*k; tVoice[i*3+1]=(tVoice[i*3+1]-cy)*k; tVoice[i*3+2]*=k; dVoice[i]=DMAX*clamp01(0.5 + tVoice[i*3]/3 + Math.random()*0.25); }   // left settles first
+      })();
+
+      // ---- LOCATION PIN (beat 3 · Multi-Location Routing · RIGHT) ----
+      const PIN_W = window.innerWidth < 1024 ? 1.5 : 1.9;
+      const tPin = new Float32Array(N * 3);
+      const dPin = new Float32Array(N);
+      (function buildPin() {
+        const R = 1.0, holeR = 0.40, tipY = -2.05, joinY = -0.55, baseX = 0.85;   // spike merges into the head → teardrop
+        const inHead = (x, y) => (x*x + y*y <= R*R) && !(x*x + y*y <= holeR*holeR);
+        const inSpike = (x, y) => { if (y > joinY) return false; const t = (y - tipY) / (joinY - tipY); if (t < 0 || t > 1) return false; return Math.abs(x) <= baseX * t; };
+        let idx = 0, tries = 0; const o = [0, 0, 0];
+        const T = () => { tPin[idx*3] = o[0]; tPin[idx*3+1] = o[1]; tPin[idx*3+2] = o[2]; idx++; };
+        while (idx < N && tries < N * 60) { tries++; const x = (Math.random()*2-1)*1.05, y = tipY + Math.random()*(R + 0.05 - tipY); if (inHead(x, y) || inSpike(x, y)) { o[0] = x; o[1] = y; o[2] = (Math.random()-0.5)*0.06; T(); } }
+        while (idx < N) { o[0] = 0; o[1] = 0; o[2] = 0; T(); }
+        let mnx=1e9,mny=1e9,mxx=-1e9,mxy=-1e9;
+        for (let i=0;i<N;i++){const x=tPin[i*3],y=tPin[i*3+1]; if(x<mnx)mnx=x;if(y<mny)mny=y;if(x>mxx)mxx=x;if(y>mxy)mxy=y;}
+        const cx=(mnx+mxx)/2, cy=(mny+mxy)/2, k=PIN_W/(mxx-mnx);
+        for (let i=0;i<N;i++){ tPin[i*3]=(tPin[i*3]-cx)*k; tPin[i*3+1]=(tPin[i*3+1]-cy)*k; tPin[i*3+2]*=k; dPin[i]=DMAX*clamp01(0.5 - tPin[i*3+1]/3 + Math.random()*0.25); }   // head (top) settles first
+      })();
+
+      // ---- DATABASE CYLINDER (beat 4 · Salesforce / HubSpot CRM Sync · LEFT) ----
+      const DB_W = window.innerWidth < 1024 ? 1.7 : 2.2;
+      const tDb = new Float32Array(N * 3);
+      const dDb = new Float32Array(N);
+      (function buildDatabase() {
+        const rx = 0.92, ry = 0.30, levels = [0.85, 0.28, -0.29, -0.86];   // top lid, div1, div2, bottom
+        let idx = 0; const o = [0, 0, 0];
+        const T = () => { tDb[idx*3] = o[0]; tDb[idx*3+1] = o[1]; tDb[idx*3+2] = o[2]; idx++; };
+        const cLid = Math.round(N * 0.20);                                  // filled top ellipse → reads as solid lid
+        for (let k = 0; k < cLid && idx < N; k++) { const a = Math.random()*Math.PI*2, rr = Math.sqrt(Math.random()); o[0] = Math.cos(a)*rx*rr; o[1] = levels[0] + Math.sin(a)*ry*rr; o[2] = (Math.random()-0.5)*0.05; T(); }
+        const cRing = Math.round(N * 0.46), perRing = Math.floor(cRing / levels.length);
+        for (let li = 0; li < levels.length; li++) {                        // rim ellipses; lower levels = front arc only
+          for (let k = 0; k < perRing && idx < N; k++) { const a = li === 0 ? Math.random()*Math.PI*2 : Math.PI + Math.random()*Math.PI; o[0] = Math.cos(a)*rx; o[1] = levels[li] + Math.sin(a)*ry; o[2] = (Math.random()-0.5)*0.05; T(); }
+        }
+        while (idx < N) { const side = Math.random() < 0.5 ? -1 : 1, yy = levels[3] + Math.random()*(levels[0] - levels[3]); o[0] = side*rx + (Math.random()-0.5)*0.03; o[1] = yy; o[2] = (Math.random()-0.5)*0.05; T(); }   // vertical side walls
+        let mnx=1e9,mny=1e9,mxx=-1e9,mxy=-1e9;
+        for (let i=0;i<N;i++){const x=tDb[i*3],y=tDb[i*3+1]; if(x<mnx)mnx=x;if(y<mny)mny=y;if(x>mxx)mxx=x;if(y>mxy)mxy=y;}
+        const cx=(mnx+mxx)/2, cy=(mny+mxy)/2, k=DB_W/(mxx-mnx);
+        for (let i=0;i<N;i++){ tDb[i*3]=(tDb[i*3]-cx)*k; tDb[i*3+1]=(tDb[i*3+1]-cy)*k; tDb[i*3+2]*=k; dDb[i]=DMAX*clamp01(0.5 - tDb[i*3+1]/3 + Math.random()*0.25); }   // top settles first
+      })();
+
+      // ---- ELLEVUX LOGO (final beat · centered · sampled from logo.png pixels) ----
+      const LOGO_W = window.innerWidth < 1024 ? 2.6 : 3.4;
+      const tLogo = new Float32Array(N * 3);
+      const dLogo = new Float32Array(N);
+      let logoReady = false;
+      (function buildLogo() {
+        const img = new Image();
+        img.onload = () => {
+          const cw = 400, ch = Math.max(1, Math.round(400 * img.height / img.width));
+          const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+          const g = cv.getContext('2d'); g.drawImage(img, 0, 0, cw, ch);
+          let data; try { data = g.getImageData(0, 0, cw, ch).data; } catch (e) { return; }   // same-origin → safe
+          const pts = [];
+          for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+            const p = (y * cw + x) * 4;
+            if (data[p + 3] > 80 && (data[p] + data[p + 1] + data[p + 2]) > 180) pts.push(x, y);   // opaque white logo pixels
+          }
+          const np = pts.length / 2; if (!np) return;
+          for (let i = 0; i < N; i++) { const j = Math.floor(Math.random() * np) * 2; tLogo[i*3] = pts[j] + Math.random() - 0.5; tLogo[i*3+1] = pts[j+1] + Math.random() - 0.5; }   // sub-pixel jitter spreads duplicates
+          let mnx=1e9,mny=1e9,mxx=-1e9,mxy=-1e9;
+          for (let i=0;i<N;i++){const x=tLogo[i*3],yv=tLogo[i*3+1]; if(x<mnx)mnx=x;if(yv<mny)mny=yv;if(x>mxx)mxx=x;if(yv>mxy)mxy=yv;}
+          const cxn=(mnx+mxx)/2, cyn=(mny+mxy)/2, k=LOGO_W/(mxx-mnx);
+          for (let i=0;i<N;i++){ tLogo[i*3]=(tLogo[i*3]-cxn)*k; tLogo[i*3+1]=-(tLogo[i*3+1]-cyn)*k; tLogo[i*3+2]=(Math.random()-0.5)*0.04; dLogo[i]=DMAX*clamp01(0.5 + tLogo[i*3]/3 + Math.random()*0.25); }   // flip Y (canvas top-down); left settles first
+          logoReady = true;
+        };
+        img.onerror = () => {};                                  // load fails → logo beat stays inert, calendar remains final
+        img.src = 'logo.png';
+      })();
+
+      let targetReady = false;
+      const nEye = 0;                                            // pure bust, no glowing eyes
+      for (let i = 0; i < N; i++) { isEye[i] = 0; seed[i] = Math.random(); }
+      const FACE_YAW = -0.55;                                    // ~31° turn toward the viewer's left (3/4 view)
+      function sampleMannequin(gltf) {
+        let mesh = null; gltf.scene.updateMatrixWorld(true); gltf.scene.traverse(o => { if (o.isMesh && !mesh) mesh = o; });
+        if (!mesh) { console.error('[ellevux] mannequin: no mesh'); return; }
+        const sampler = new MeshSurfaceSampler(mesh).build();
+        const _p = new THREE.Vector3(), cyaw = Math.cos(FACE_YAW), syaw = Math.sin(FACE_YAW);
+        const bodyCount = N - nEye, tmp = new Float32Array(bodyCount * 3);
+        let mnx = 1e9, mny = 1e9, mnz = 1e9, mxx = -1e9, mxy = -1e9, mxz = -1e9;
+        for (let i = 0; i < bodyCount; i++) {
+          sampler.sample(_p); _p.applyMatrix4(mesh.matrixWorld);
+          const x = _p.x * cyaw + _p.z * syaw, y = _p.y, z = -_p.x * syaw + _p.z * cyaw;   // yaw about Y
+          tmp[i*3] = x; tmp[i*3+1] = y; tmp[i*3+2] = z;
+          if (x<mnx)mnx=x; if(y<mny)mny=y; if(z<mnz)mnz=z; if(x>mxx)mxx=x; if(y>mxy)mxy=y; if(z>mxz)mxz=z;
+        }
+        const cx = (mnx+mxx)/2, cyc = (mny+mxy)/2, cz = (mnz+mxz)/2, k = HEAD_H / (mxy - mny);
+        for (let i = 0; i < bodyCount; i++) { const ti = (nEye + i) * 3; target[ti] = (tmp[i*3]-cx)*k; target[ti+1] = (tmp[i*3+1]-cyc)*k; target[ti+2] = (tmp[i*3+2]-cz)*k; }
+        for (let i = 0; i < N; i++) delay[i] = DMAX * clamp01(0.5 + target[i*3+1] / 3 + Math.random() * 0.25);  // base first, crown last
+        targetReady = true;
+      }
+      new GLTFLoader().load('mannequin_model/scene.gltf', sampleMannequin, undefined, e => console.error('[ellevux] mannequin load failed', e));
+
+      // phone-shaped sand source (world-unit slab, baked to world on dissolve)
+      const startLocal = new Float32Array(N * 3);
+      const startWorld = new Float32Array(N * 3);
+      (function buildPhoneStart() {
+        const H = fitH(), W = H * 0.46, D = 0.16, rad = Math.min(W, H) * 0.18;
+        for (let i = 0; i < N; i++) {
+          let x, y;
+          do { x = rnd() * W * 0.5; y = rnd() * H * 0.5; }
+          while ((Math.abs(x) - (W * 0.5 - rad)) > 0 && (Math.abs(y) - (H * 0.5 - rad)) > 0 &&
+            ((Math.abs(x) - (W * 0.5 - rad)) ** 2 + (Math.abs(y) - (H * 0.5 - rad)) ** 2) > rad * rad);
+          startLocal[i*3] = x; startLocal[i*3+1] = y; startLocal[i*3+2] = rnd() * D * 0.5;
+        }
+      })();
+      let startBaked = false, phoneCx = anchorX(), phoneCy = 0.1, phoneCz = 0;
+      const _wc = new THREE.Vector3();
+      function bakeStartWorld() {
+        phoneGroup.updateWorldMatrix(true, true); phoneGroup.getWorldPosition(_wc);
+        for (let i = 0; i < N; i++) { startWorld[i*3] = _wc.x + startLocal[i*3]; startWorld[i*3+1] = _wc.y + startLocal[i*3+1]; startWorld[i*3+2] = _wc.z + startLocal[i*3+2]; }
+        phoneCx = _wc.x; phoneCy = _wc.y; phoneCz = _wc.z; startBaked = true;
+      }
+
+      function softSprite() {
+        const cv = document.createElement('canvas'); cv.width = cv.height = 64; const g = cv.getContext('2d');
+        const rg = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+        rg.addColorStop(0, 'rgba(255,255,255,1)'); rg.addColorStop(.4, 'rgba(255,255,255,.65)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = rg; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(cv);
+      }
+      const sprite = softSprite();
+      const pos = new Float32Array(N * 3); pos.set(startLocal);
+      const colors = new Float32Array(N * 3);
+      const geo = new THREE.BufferGeometry();
+      const posAttr = new THREE.BufferAttribute(pos, 3); posAttr.setUsage(THREE.DynamicDrawUsage);
+      geo.setAttribute('position', posAttr);
+      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      const bodyMat = new THREE.PointsMaterial({ size: 0.055, map: sprite, vertexColors: true, transparent: true, depthWrite: false, sizeAttenuation: true, blending: THREE.NormalBlending, opacity: 0 });
+      const sandGroup = new THREE.Group(); scene.add(sandGroup);
+      const points = new THREE.Points(geo, bodyMat); points.frustumCulled = false; points.visible = false; sandGroup.add(points);
+
+      const eyeIdx = []; for (let i = 0; i < N; i++) if (isEye[i]) eyeIdx.push(i);
+      const eyePos = new Float32Array(eyeIdx.length * 3);
+      const eyeGeo = new THREE.BufferGeometry();
+      const eyePosAttr = new THREE.BufferAttribute(eyePos, 3); eyePosAttr.setUsage(THREE.DynamicDrawUsage);
+      eyeGeo.setAttribute('position', eyePosAttr);
+      const eyeMat = new THREE.PointsMaterial({ size: 0.10, map: sprite, color: lin(0x6ea0ff), transparent: true, depthWrite: false, sizeAttenuation: true, blending: THREE.AdditiveBlending, opacity: 0 });
+      const eyePoints = new THREE.Points(eyeGeo, eyeMat); eyePoints.frustumCulled = false; eyePoints.visible = false; sandGroup.add(eyePoints);
+
+      const C_TITAN = lin(0xb8bcc4), C_TITANHI = lin(0xd9dde4), C_STEEL = lin(0x9fb0cc);
+      const _col = new THREE.Color(); let colorKey = -1;
+      function writeColors(gp) {
+        const tint = 0.5 * smoothstep((gp - 0.45) / 0.5);
+        for (let i = 0; i < N; i++) {
+          if (isEye[i]) { colors[i*3] = 1; colors[i*3+1] = 1; colors[i*3+2] = 1; continue; }
+          _col.copy(seed[i] > 0.5 ? C_TITAN : C_TITANHI).lerp(C_STEEL, tint);
+          colors[i*3] = _col.r; colors[i*3+1] = _col.g; colors[i*3+2] = _col.b;
+        }
+        geo.getAttribute('color').needsUpdate = true;
+      }
+
+      let bento = null;
+      function getBento() { if (bento && document.body.contains(bento)) return bento; bento = document.getElementById('features-bento'); return bento; }
+      const _anchor = new THREE.Vector3();
+      function assemblyCenter(out, r) {
+        const vh = window.innerHeight;
+        const screenY = (r ? r.top : vh * 0.6) - vh * 0.12;
+        const ndcY = -((screenY / vh) * 2 - 1);
+        const topRoom = halfH * 0.42 - HEAD_H * 0.5, botRoom = -halfH * 0.92 + HEAD_H * 0.5;   // cap so the head clears the navbar AND the feature-section cards
+        const hw = halfH * camera.aspect;
+        out.x = Math.min(hw * 0.62, hw - HEAD_H * 0.5);          // assemble on the RIGHT, kept fully in frame
+        out.z = 0;
+        out.y = Math.max(botRoom, Math.min(topRoom, ndcY * halfH));
+        return out;
+      }
+
+      // ---- feature-section beats: each shape anchors above a section heading, on its empty side ----
+      // side: -1 = LEFT half, +1 = RIGHT half. The shape lands in the column opposite the text.
+      function assemblyAt(out, r, side, w, hEst) {
+        const vh = window.innerHeight;
+        const midView = r ? (r.top + r.height * 0.5) : vh * 0.5;   // section center → level with the centered text
+        const ndcY = -((midView / vh) * 2 - 1);
+        const hw = halfH * camera.aspect;
+        out.x = side < 0 ? Math.max(-hw * 0.5, -hw + w * 0.55) : side > 0 ? Math.min(hw * 0.5, hw - w * 0.6) : 0;   // side 0 = centered
+        out.z = 0;
+        out.y = ndcY * halfH;        // ride at the text's vertical level so shape + text sit side by side
+        return out;
+      }
+      const CLOUD_H_EST = CLOUD_W * 0.74, CAL_H_EST = CAL_W * 0.95;
+      // The morph chain after the bust: voice → chat → pin → database → calendar.
+      // Each beat's section rect drives BOTH the disintegration of the previous shape and the reassembly of this one.
+      const FEAT = [
+        { id: 'feat-voice',    side:  1, target: tVoice,  delay: dVoice, w: VOICE_W, hEst: VOICE_W * 0.55 },
+        { id: 'feat-sms',      side: -1, target: target2, delay: delay2, w: CLOUD_W, hEst: CLOUD_H_EST },
+        { id: 'feat-routing',  side:  1, target: tPin,    delay: dPin,   w: PIN_W,   hEst: PIN_W * 1.45 },
+        { id: 'feat-crm',      side: -1, target: tDb,     delay: dDb,    w: DB_W,    hEst: DB_W * 1.25 },
+        { id: 'feat-calendar', side:  1, target: target3, delay: delay3, w: CAL_W,   hEst: CAL_H_EST },
+        { id: 'feat-logo',     side:  0, target: tLogo,   delay: dLogo,  w: LOGO_W,  hEst: LOGO_W * 0.4, logo: true },
+      ];
+      for (const F of FEAT) { F._el = null; F._r = null; F._a = new THREE.Vector3(); F.dis = 0; F.asm = 0; }
+      function getFeatEl(F) { if (F._el && document.body.contains(F._el)) return F._el; F._el = document.getElementById(F.id); return F._el; }
+
+      function updateParticles(t, mScat1, mAsm1, anchor1) {
+        const sc1 = smoothstep(mScat1);   // phone disintegration
+        const inv = 1 / (1 - DMAX);
+        const nF = FEAT.length;
+        for (let i = 0; i < N; i++) {
+          const o = i * 3, sd = seed[i];
+          // base = phone-shaped sand slab
+          let x = startWorld[o], y = startWorld[o + 1], z = startWorld[o + 2];
+          // stage 1a: phone DISINTEGRATES into a drifting sand field (same style as robot→cloud)
+          if (sc1 > 0.001) {
+            const a = sd * 41.7, h1 = Math.sin(sd * 91.7) * 43758.5453, u = 2 * (h1 - Math.floor(h1)) - 1, sxy = Math.sqrt(1 - u * u), rad = sc1 * (0.1 + sd * 2.4);
+            x += sxy * Math.cos(a) * rad; y += u * rad * 0.9 - sc1 * (0.25 + sd * 0.5); z += sxy * Math.sin(a) * rad * 0.6;
+            if (!reduce) { x += Math.sin(t * 0.6 + sd * 9) * 0.18 * sc1; y += Math.cos(t * 0.5 + sd * 5) * 0.18 * sc1; }
+          }
+          // stage 1b: drifting sand REASSEMBLES into the bust
+          if (mAsm1 > 0.001) {
+            const pp1 = smoothstep((mAsm1 - delay[i]) * inv);
+            const bx = anchor1.x + target[o], by = anchor1.y + target[o + 1], bz = anchor1.z + target[o + 2];
+            x += (bx - x) * pp1; y += (by - y) * pp1; z += (bz - z) * pp1;
+            const fly = Math.sin(pp1 * Math.PI);
+            if (fly > 0.001 && !reduce) {
+              const amp = fly * 0.35;
+              x += amp * Math.sin(t * 0.9 + sd * 12.9898 + y * 1.7); y += amp * Math.cos(t * 1.1 + sd * 78.233 + z * 1.5); z += amp * 0.6 * Math.sin(t * 0.8 + sd * 37.719 + x * 1.6);
+            }
+          }
+          // feature beats: each disintegrates the PREVIOUS shape, then reassembles its own
+          for (let b = 0; b < nF; b++) {
+            const F = FEAT[b];
+            if (F.dis > 0.001) {                                // scatter the shape that lived at the previous beat
+              const sc = smoothstep(F.dis);
+              const a = sd * 41.7, hh = Math.sin(sd * 91.7) * 43758.5453, u = 2 * (hh - Math.floor(hh)) - 1, sxy = Math.sqrt(1 - u * u), rad = sc * (0.1 + sd * 2.4);
+              x += sxy * Math.cos(a) * rad; y += u * rad * 0.9 - sc * (0.25 + sd * 0.5); z += sxy * Math.sin(a) * rad * 0.6;
+              if (!reduce) { x += Math.sin(t * 0.6 + sd * 9) * 0.18 * sc; y += Math.cos(t * 0.5 + sd * 5) * 0.18 * sc; }
+            }
+            if (F.asm > 0.001) {                                // reassemble into this beat's shape
+              const pp = smoothstep((F.asm - F.delay[i]) * inv);
+              const tx = F._a.x + F.target[o], ty = F._a.y + F.target[o + 1], tz = F._a.z + F.target[o + 2];
+              x += (tx - x) * pp; y += (ty - y) * pp; z += (tz - z) * pp;
+              const fly = Math.sin(pp * Math.PI);
+              if (fly > 0.001 && !reduce) {
+                const amp = fly * 0.35;
+                x += amp * Math.sin(t * 0.9 + sd * 4.1 + y * 1.7); y += amp * Math.cos(t * 1.1 + sd * 9.7 + z * 1.5); z += amp * 0.6 * Math.sin(t * 0.8 + sd * 6.3 + x * 1.6);
+              }
+            }
+          }
+          pos[o] = x; pos[o + 1] = y; pos[o + 2] = z;
+        }
+        posAttr.needsUpdate = true;
+      }
+
+      // ---- Ellevux "calling…" screen, drawn to a canvas and used as the phone's display ----
+      // (replaces the stock wallpaper on the screen material 'ZVpJkazCvASOIpG')
+      const screenW = 540, screenH = 1080;
+      const screenCanvas = document.createElement('canvas'); screenCanvas.width = screenW; screenCanvas.height = screenH;
+      const screenCtx = screenCanvas.getContext('2d');
+      const screenTex = new THREE.CanvasTexture(screenCanvas);
+      screenTex.flipY = true;                  // CanvasTexture needs flipY=true here so the UI is upright
+      screenTex.encoding = THREE.sRGBEncoding;
+      screenTex.anisotropy = 4;
+      let screenBound = false, lastScreenDraw = -1;
+
+      const rr = (c, x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
+      const handset = (c, cx, cy, r, col, rot) => {
+        c.save(); c.translate(cx, cy); c.rotate(rot); c.fillStyle = col;
+        c.beginPath(); c.arc(0, 0, r, Math.PI * 0.16, Math.PI * 0.84, false); c.arc(0, 0, r * 0.6, Math.PI * 0.84, Math.PI * 0.16, true); c.closePath(); c.fill();
+        const mr = (r + r * 0.6) / 2;[Math.PI * 0.16, Math.PI * 0.84].forEach(a => { c.beginPath(); c.arc(Math.cos(a) * mr, Math.sin(a) * mr, r * 0.28, 0, Math.PI * 2); c.fill(); });
+        c.restore();
+      };
+      function drawCallScreen(t) {
+        const c = screenCtx, W = screenW, H = screenH;
+        let g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0a0b12'); g.addColorStop(1, '#06060c'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+        let rg = c.createRadialGradient(W / 2, 360, 0, W / 2, 360, 360); rg.addColorStop(0, 'rgba(75,105,225,0.22)'); rg.addColorStop(1, 'rgba(75,105,225,0)'); c.fillStyle = rg; c.fillRect(0, 0, W, H);
+        let rg2 = c.createRadialGradient(W / 2, 760, 0, W / 2, 760, 420); rg2.addColorStop(0, 'rgba(138,43,226,0.16)'); rg2.addColorStop(1, 'rgba(138,43,226,0)'); c.fillStyle = rg2; c.fillRect(0, 0, W, H);
+        // status bar
+        c.textBaseline = 'middle'; c.fillStyle = '#e6e6ee'; c.font = '600 26px ui-sans-serif, system-ui, sans-serif';
+        c.textAlign = 'left'; c.fillText('9:41', 36, 42);
+        c.textAlign = 'right'; c.fillText('5G', W - 110, 42);
+        rr(c, W - 92, 30, 46, 24, 6); c.fillStyle = '#e6e6ee'; c.fill(); c.fillStyle = '#06060c'; rr(c, W - 88, 34, 32, 16, 3); c.fill();
+        // dynamic island
+        c.fillStyle = '#000'; rr(c, W / 2 - 62, 30, 124, 36, 18); c.fill();
+        // pulsing rings + avatar
+        for (let k = 0; k < 3; k++) { const f = ((t * 0.5) + k / 3) % 1; c.beginPath(); c.arc(W / 2, 360, 110 + f * 92, 0, Math.PI * 2); c.strokeStyle = 'rgba(159,180,255,' + ((1 - f) * 0.30).toFixed(3) + ')'; c.lineWidth = 3; c.stroke(); }
+        let ag = c.createLinearGradient(W / 2 - 110, 250, W / 2 + 110, 470); ag.addColorStop(0, '#4169e1'); ag.addColorStop(1, '#8a2be2');
+        c.beginPath(); c.arc(W / 2, 360, 110, 0, Math.PI * 2); c.fillStyle = ag; c.fill();
+        c.fillStyle = '#fff'; c.font = '700 132px ui-sans-serif, system-ui, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('e', W / 2, 374);
+        // name / subtitle / status
+        c.textBaseline = 'alphabetic'; c.fillStyle = '#fff'; c.font = '700 66px ui-sans-serif, system-ui, sans-serif'; c.fillText('Ellevux', W / 2, 590);
+        c.fillStyle = '#9aa0ae'; c.font = '400 30px ui-sans-serif, system-ui, sans-serif'; c.fillText('AI Receptionist', W / 2, 636);
+        const dots = '.'.repeat(Math.floor(t * 2) % 4);
+        c.fillStyle = '#5bd06a'; c.font = '500 34px ui-sans-serif, system-ui, sans-serif'; c.fillText('calling' + dots, W / 2, 702);
+        // control row
+        const cyy = 900, cols = [W / 2 - 130, W / 2, W / 2 + 130];
+        cols.forEach(x => { c.beginPath(); c.arc(x, cyy, 46, 0, Math.PI * 2); c.fillStyle = 'rgba(255,255,255,0.07)'; c.fill(); c.strokeStyle = 'rgba(255,255,255,0.12)'; c.lineWidth = 2; c.stroke(); });
+        c.fillStyle = '#e6e6ee';
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) { c.beginPath(); c.arc(W / 2 - 14 + i * 14, cyy - 14 + j * 14, 2.4, 0, Math.PI * 2); c.fill(); }       // keypad
+        rr(c, cols[0] - 7, cyy - 16, 14, 22, 7); c.fill(); c.fillRect(cols[0] - 1, cyy + 7, 2, 8);                                                                       // mute mic
+        c.beginPath(); c.moveTo(cols[2] - 12, cyy - 7); c.lineTo(cols[2] - 2, cyy - 7); c.lineTo(cols[2] + 8, cyy - 16); c.lineTo(cols[2] + 8, cyy + 16); c.lineTo(cols[2] - 2, cyy + 7); c.lineTo(cols[2] - 12, cyy + 7); c.closePath(); c.fill();   // speaker
+        // end-call
+        c.beginPath(); c.arc(W / 2, 1010, 50, 0, Math.PI * 2); c.fillStyle = '#ff3b30'; c.fill();
+        handset(c, W / 2, 1010, 24, '#fff', Math.PI * 0.78);
+        screenTex.needsUpdate = true;
+      }
+      drawCallScreen(0);
+
+      // ---- load the iPhone model ----
+      const loader = new GLTFLoader();
+      loader.load('iphone_model/scene.gltf', gltf => {
+        const model = gltf.scene;
+        const box = new THREE.Box3().setFromObject(model);
+        const size = new THREE.Vector3(); box.getSize(size);
+        const center = new THREE.Vector3(); box.getCenter(center);
+        model.position.sub(center);
+        modelH = size.y;
+        baseScale = fitH() / modelH;
+        phoneGroup.scale.setScalar(baseScale);
+        phoneGroup.rotation.y = Math.PI;   // screen-forward for the first paint / reduced-motion
+        model.traverse(o => {
+          if (o.isMesh && o.material) {
+            const ms = Array.isArray(o.material) ? o.material : [o.material];
+            ms.forEach(m => {
+              if (phoneMats.indexOf(m) === -1) {
+                m.transparent = true;
+                m._base = (m.opacity == null ? 1 : m.opacity);
+                if (m.normalScale) m.normalScale.multiplyScalar(0.55);   // calm the frosted-glass grain
+                if ('envMapIntensity' in m) m.envMapIntensity = 1.1;     // a little more clean reflection
+                if (m.name === 'ZVpJkazCvASOIpG') {                       // the display → Ellevux call screen
+                  m.map = screenTex; m.emissiveMap = screenTex;
+                  m.emissive = new THREE.Color(0xffffff); m.emissiveIntensity = 1.35;
+                  screenBound = true;
+                }
+                m.needsUpdate = true;
+                phoneMats.push(m);
+              }
+            });
+          }
+        });
+        phoneGroup.add(model); phoneReady = true;
+        renderer.render(scene, camera);   // first paint
+      }, undefined, err => console.error('[ellevux] iPhone model failed to load', err));
+
+      // ---- scroll (eased, pixel-based so the morph completes near the hero) ----
+      let targetY = window.scrollY || 0, curY = targetY, mDisCur = 0;
+      window.addEventListener('scroll', () => { targetY = window.scrollY || 0; }, { passive: true });
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        if (modelH) baseScale = fitH() / modelH;            // re-fit phone for the new breakpoint
+        phoneGroup.position.set(anchorX(), 0.1, 0);
+      });
+
+      const clock = new THREE.Clock(); let raf, running = true;
+      function tick() {
+        if (!running) return;
+        const t = clock.getElapsedTime();
+        curY += (targetY - curY) * 0.08;
+        const vh = window.innerHeight;
+        const el = getBento();
+        const r = el ? el.getBoundingClientRect() : null;
+        let mDis = smooth(vh * 0.12, vh * 0.42, curY);               // phone mesh → sand slab (early)
+        let mScat1 = 0, mAsm1 = 0;
+        if (r) {
+          mScat1 = smooth(vh * 0.42, vh * 0.85, curY);              // sand slab DISINTEGRATES into a drifting field
+          mAsm1 = smooth(vh * 0.66, vh * 1.20, curY);               // drifting sand REASSEMBLES into the bust
+        }
+        // feature beats: each section rect drives [disintegrate previous shape] + [reassemble this shape]
+        let maxFeat = 0;
+        for (const F of FEAT) {
+          const fe = getFeatEl(F); F._r = fe ? fe.getBoundingClientRect() : null;
+          const mid = F._r ? (F._r.top + F._r.height * 0.5) : null;  // viewport-y of the section center (the text)
+          if (mid !== null && targetReady) {
+            F.dis = clamp01((vh * 1.05 - mid) / (vh * 0.45));        // scatter the previous shape (tighter window → closer features)
+            F.asm = clamp01((vh * 1.0 - mid) / (vh * 0.40));         // this shape forms level with the (centered) text, then rides with it
+          } else { F.dis = 0; F.asm = 0; }
+          if (F.logo && !logoReady) { F.dis = 0; F.asm = 0; }        // logo PNG not sampled yet → keep the calendar formed
+          if (F.dis > maxFeat) maxFeat = F.dis;
+          if (F.asm > maxFeat) maxFeat = F.asm;
+        }
+        if (!el) mDis = 0;                                           // no target sections (e.g. logged-in) → phone stays whole
+        if (!targetReady) { mScat1 = 0; mAsm1 = 0; }
+        mDisCur = mDis;
+
+        if (mDis > 0.02 && !startBaked && phoneReady) bakeStartWorld();
+
+        // phone fade + idle
+        phoneGroup.visible = mDis < 0.995 && phoneReady;
+        setPhoneOpacity(1 - smooth(0.05, 0.85, mDis));
+        if (phoneGroup.visible && mDis < 0.05) {
+          phoneGroup.rotation.y = Math.PI + Math.sin(t * 0.3) * 0.28;
+          phoneGroup.rotation.x = -0.10 + Math.sin(t * 0.5) * 0.04;
+          if (screenBound && t - lastScreenDraw > 0.085) { drawCallScreen(t); lastScreenDraw = t; }
+        }
+
+        // sand visibility + colours
+        const anyProg = Math.max(mDis, mScat1, mAsm1, maxFeat);
+        bodyMat.opacity = smooth(0.03, 0.25, anyProg);
+        const show = anyProg > 0.02 && startBaked;
+        points.visible = show;
+        const qk = Math.round(clamp01(mAsm1) * 20);
+        if (qk !== colorKey) { colorKey = qk; writeColors(clamp01(mAsm1)); }
+
+        // anchors → bust (#features-bento) + each feature shape (voice/chat/pin/db/calendar)
+        assemblyCenter(_anchor, r);
+        for (const F of FEAT) assemblyAt(F._a, F._r, F.side, F.w, F.hEst);
+        const offscreen = anyProg < 0.02;
+        if (show && !offscreen) updateParticles(t, mScat1, mAsm1, _anchor);
+
+        // idle bob when a shape is fully formed and the next beat hasn't started scattering it
+        let settled = (mAsm1 > 0.99 && FEAT[0].dis < 0.03);
+        for (let b = 0; b < FEAT.length; b++) { const nx = FEAT[b + 1]; if (FEAT[b].asm > 0.99 && (!nx || nx.dis < 0.03)) settled = true; }
+        if (settled) { sandGroup.position.y = Math.sin(t * 1.1) * 0.04; sandGroup.rotation.y = Math.sin(t * 0.25) * 0.12; }
+        else { sandGroup.position.y = 0; sandGroup.rotation.y = 0; }
+
+        rimBlue.intensity = 7 + Math.sin(t * 0.8) * 2;
+        rimPurple.intensity = 6 + Math.cos(t * 0.7) * 2;
+
+        renderer.render(scene, camera);
+        raf = requestAnimationFrame(tick);
+      }
+      renderer.render(scene, camera);
+      tick();   // scroll-driven (reduced-motion still tracks scroll, minus per-particle turbulence)
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { running = false; cancelAnimationFrame(raf); }
+        else { running = true; clock.getDelta(); tick(); }
+      });
+    })();
   </script>
 </body>
 </html>

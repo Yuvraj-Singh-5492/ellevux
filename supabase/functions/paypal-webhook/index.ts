@@ -83,7 +83,9 @@ Deno.serve(async (req) => {
 
   if (!userId) return new Response("no custom_id", { status: 200 }); // nothing to map; ack so PayPal stops retrying
 
-  const ACTIVE = ["BILLING.SUBSCRIPTION.ACTIVATED", "BILLING.SUBSCRIPTION.CREATED", "PAYMENT.SALE.COMPLETED"];
+  // NOTE: BILLING.SUBSCRIPTION.CREATED is deliberately NOT here — it fires on popup-open,
+  // BEFORE payment. Activating on it would grant free access to abandoned checkouts.
+  const ACTIVE = ["BILLING.SUBSCRIPTION.ACTIVATED", "PAYMENT.SALE.COMPLETED"];
   const INACTIVE = ["BILLING.SUBSCRIPTION.CANCELLED", "BILLING.SUBSCRIPTION.EXPIRED", "BILLING.SUBSCRIPTION.SUSPENDED"];
 
   let status: string | null = null;

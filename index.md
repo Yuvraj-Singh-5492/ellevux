@@ -5,6 +5,7 @@ The central map of content for the **Ellevux** AI receptionist project. Everythi
 ## Project Docs
 - [[claude]] — context & directives for Claude (architecture, design rules, tone)
 - [[handover]] — project handover (structure, recent work, notes for future dev)
+- [[PAYPAL_SETUP]] — PayPal paywall setup guide (sandbox → live steps)
 
 ## Pages
 - [[react_landing.html]] — main landing page
@@ -20,3 +21,6 @@ The central map of content for the **Ellevux** AI receptionist project. Everythi
 - [[supabase-config.js]] — Supabase backend configuration
 - [[logo.png]] — primary branding asset
 - [[demo.mp3]] — audio sample used by the demo page
+
+## Reference
+- [[shadcn-version/README]] — standalone Vite/TS + shadcn component deliverables (not part of the live site)

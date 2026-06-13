@@ -9,3 +9,8 @@ dist/
 .claude/
 _*
 z*.txt
+
+# editor/backup + source archives + CLI temp — not for the deploy
+*.bak
+*.zip
+supabase/.temp/

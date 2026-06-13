@@ -13,6 +13,34 @@ Work in **Sandbox** first, then repeat with Live credentials.
 
 ---
 
+## ✅ CURRENT STATE — Sandbox configured (2026-06-12)
+Steps 1–6 are DONE for sandbox (product/plans/webhook created via API; pricing.html wired):
+- Product: `PROD-0A695237J4256643S`
+- Plans (ACTIVE, each with $297 setup fee, fail→cancel):
+  Starter `P-5TX99968D0409622GNIV4SOI` · Growth `P-5FS82625SG0654936NIV4SOI` · Scale `P-9XS88973G17884719NIV4SOQ`
+- Webhook: `25D16552C7672094N` → `https://lndkbsdkflpydpkfpkny.supabase.co/functions/v1/paypal-webhook`
+  (subscribed: BILLING.SUBSCRIPTION.CREATED/ACTIVATED/UPDATED/CANCELLED/EXPIRED/SUSPENDED + PAYMENT.SALE.COMPLETED)
+- `subscriptions` table exists; Edge Function deployed; sandbox Client ID + Plan IDs are in pricing.html.
+
+2026-06-12 LATER: the 4 secrets ARE SET on the function (verified via `secrets list`), and the
+pipeline was **verified end-to-end in sandbox**: API-created subscription `I-GKBDU6EF6XJL`
+(custom_id = test user `59441b19-…fb857`) → real signed webhook → function verified signature →
+`subscriptions` row upserted `active` → RLS read-own returned it. PASS.
+
+⚠️ FLAW FOUND + FIXED IN SOURCE (needs redeploy): the function previously activated on
+`BILLING.SUBSCRIPTION.CREATED`, which fires on popup-open BEFORE payment → abandoned checkouts
+got free access. `index.ts` now activates only on ACTIVATED / PAYMENT.SALE.COMPLETED.
+**Redeploy required:** `supabase functions deploy paypal-webhook --no-verify-jwt` (user's terminal).
+
+REMAINING: (a) redeploy the fixed function; (b) optional human browser test (popup → approve with
+sandbox buyer → row active after ACTIVATED, not before); (c) cleanup: delete test row/user
+`59441b19-…fb857` + any rows activated by abandoned popups (Table Editor), sandbox sub
+`I-GKBDU6EF6XJL` just expires; (d) go-live (step 8).
+NOTE: free-tier Supabase pauses after ~7 idle days → login/paywall die until restored in the dashboard.
+NOTE: signup currently returns a session with NO email confirmation — decide before launch.
+
+---
+
 ## 1. PayPal Business account + REST app
 1. Sign up / log in at **https://developer.paypal.com**.
 2. **Apps & Credentials → Sandbox → Create App.** Copy the **Client ID** and **Secret**.

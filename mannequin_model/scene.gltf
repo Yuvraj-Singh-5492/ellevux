@@ -1,0 +1,195 @@
+{
+  "accessors": [
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 19188,
+      "max": [
+        18.536300659179688,
+        43.90184783935547,
+        20.833219528198242
+      ],
+      "min": [
+        -18.53619956970215,
+        -24.670711517333984,
+        -22.519550323486328
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 230256,
+      "componentType": 5126,
+      "count": 19188,
+      "max": [
+        0.9999904632568359,
+        0.9999660849571228,
+        0.9999674558639526
+      ],
+      "min": [
+        -0.9999904632568359,
+        -0.9999998807907104,
+        -0.9999887943267822
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 115116,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "CHMIL Studio (https://sketchfab.com/chmilstudio)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/chmil-mannequin-bust-2024-d5606415cb9e44009b562942b23e943f",
+      "title": "CHMIL Mannequin Bust 2024"
+    },
+    "generator": "Sketchfab-15.55.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 460464,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 460512,
+      "byteOffset": 460464,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 920976,
+      "uri": "scene.bin"
+    }
+  ],
+  "extensionsUsed": [
+    "KHR_materials_specular"
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "extensions": {
+        "KHR_materials_specular": {
+          "specularColorFactor": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "specularFactor": 0.4623383785264539
+        }
+      },
+      "name": "final_for_upload0",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.20389174174151456,
+          0.18564887504074573,
+          0.8114148022096483,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.12444350307440177
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "final_for_upload_final_for_upload0_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0
+          },
+          "indices": 2,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        3.828568672208042e-16,
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        3.828568672208042e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.009999999776482582,
+        0.0,
+        0.0,
+        -0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "e9be255de51746b49fe8e8d082cf67de.fbx"
+    },
+    {
+      "children": [
+        3
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        4
+      ],
+      "name": "final_for_upload"
+    },
+    {
+      "mesh": 0,
+      "name": "final_for_upload_final_for_upload0_0"
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ]
+}

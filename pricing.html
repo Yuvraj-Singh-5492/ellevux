@@ -205,12 +205,12 @@
        mock activation so nothing breaks in the meantime.
        ================================================================= -->
   <script>
-    const PAYPAL_CLIENT_ID = ""; // <-- paste PayPal Client ID (sandbox first). Empty = mock mode.
+    const PAYPAL_CLIENT_ID = "ARIea5yzZWsmC9-rrbyWHc3-lJvlLGlBI9wMikQ6jlr0H60kTWsPXF7NSqfODRE2bRRjJVxp-BppqAPl"; // SANDBOX — swap for the Live Client ID at launch
     const PAYPAL_PLANS = {
-      // plan name : PayPal subscription Plan ID (P-xxxxxxxx)
-      Starter: "",
-      Growth:  "",
-      Scale:   "",
+      // plan name : PayPal subscription Plan ID (SANDBOX — recreate for Live)
+      Starter: "P-5TX99968D0409622GNIV4SOI",
+      Growth:  "P-5FS82625SG0654936NIV4SOI",
+      Scale:   "P-9XS88973G17884719NIV4SOQ",
     };
     const PAYPAL_SETUP_FEES = { Starter: 297, Growth: 297, Scale: 297 }; // one-time onboarding fee, shown to user
   </script>
@@ -233,7 +233,9 @@
       return new Promise((resolve, reject) => {
         if (paypalSdkLoaded && window.paypal) return resolve();
         const s = document.createElement('script');
-        s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(PAYPAL_CLIENT_ID)}&vault=true&intent=subscription`;
+        // disable-funding=card,credit,paylater -> hides the long guest card form; buyers use the
+        // express PayPal-login flow only. Remove the param to offer card checkout again.
+        s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(PAYPAL_CLIENT_ID)}&vault=true&intent=subscription&disable-funding=card,credit,paylater`;
         s.onload = () => { paypalSdkLoaded = true; resolve(); };
         s.onerror = () => reject(new Error('PayPal SDK failed to load'));
         document.head.appendChild(s);
