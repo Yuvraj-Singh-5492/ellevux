@@ -3,5 +3,10 @@
   "rewrites": [
     { "source": "/", "has": [{ "type": "host", "value": "app.ellevux.com" }], "destination": "/dashboard.html" },
     { "source": "/", "destination": "/react_landing.html" }
+  ],
+  "headers": [
+    { "source": "/iphone_model/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
+    { "source": "/mannequin_model/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
+    { "source": "/(.*)\\.(png|jpe?g|mp3|woff2?)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }] }
   ]
 }
