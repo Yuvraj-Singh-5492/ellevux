@@ -1,0 +1,15 @@
+# Keep internal/dev files OUT of the public deploy.
+# (They stay in the repo — this only controls what Vercel serves.)
+
+# internal docs + Obsidian vault (index.md was being served at "/")
+*.md
+.obsidian/
+
+# backend source + dev harness + standalone subproject — not public web pages
+supabase/
+shadcn-version/
+iphone-preview.html
+
+# source archives / backups (also gitignored)
+*.zip
+*.bak
