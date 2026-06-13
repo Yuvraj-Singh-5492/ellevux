@@ -52,8 +52,13 @@
   <script>
     window.ENABLE_3D = (function () {
       try {
-        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
-        if (Math.min(window.innerWidth, window.innerHeight) < 768) return false;            // phones / tiny viewports
+        var mm = window.matchMedia;
+        if (mm && mm('(prefers-reduced-motion: reduce)').matches) return false;
+        // Mobile/tablet detection that is RELIABLE in <head>: pointer:coarse + UA don't depend on
+        // innerWidth (which isn't device-width yet during head parsing, so phones were slipping through).
+        if (mm && mm('(pointer: coarse)').matches) return false;                              // touch device = phone/tablet
+        if (/Mobi|Android|iPhone|iPad|iPod|Tablet|Silk|Kindle/i.test(navigator.userAgent || '')) return false;
+        if (mm && mm('(max-width: 1023px)').matches) return false;                            // small screens (backup)
         if (navigator.deviceMemory && navigator.deviceMemory < 4) return false;              // low-RAM devices
         if (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) return false;
         var c = document.createElement('canvas');
