@@ -184,9 +184,28 @@
       <h3 class="text-2xl font-bold mb-1"><span id="pp-plan-name">Plan</span></h3>
       <div class="text-muted text-sm mb-1"><span id="pp-plan-price">$0/mo</span></div>
       <div id="pp-setup-note" class="text-xs text-[#ffbd2e] mb-6">Includes a one-time setup fee on your first payment.</div>
-      <div id="paypal-button-container" class="min-h-[52px]"></div>
+
+      <!-- Step 1: guest details (we create the order before payment) -->
+      <div id="pp-guest" class="space-y-2.5 mb-2">
+        <input id="pp-name" type="text" autocomplete="name" placeholder="Your name" class="w-full bg-surface2 border border-border rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-[#555] focus:outline-none focus:border-[#8a2be2] transition-colors">
+        <input id="pp-email" type="email" autocomplete="email" placeholder="Email (your setup link + login go here)" class="w-full bg-surface2 border border-border rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-[#555] focus:outline-none focus:border-[#8a2be2] transition-colors">
+        <input id="pp-business" type="text" autocomplete="organization" placeholder="Business name" class="w-full bg-surface2 border border-border rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-[#555] focus:outline-none focus:border-[#8a2be2] transition-colors">
+        <p id="pp-guest-err" class="text-[#ef4444] text-xs hidden"></p>
+        <button onclick="continueToPayment()" id="pp-continue" class="group w-full inline-flex items-center justify-center gap-2 bg-primary text-black py-2.5 rounded-lg font-semibold text-sm hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-8px_rgba(255,255,255,0.45)] transition-all">Continue to payment <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-0.5"></i></button>
+      </div>
+
+      <!-- Step 2: PayPal buttons (revealed once the order exists) -->
+      <div id="paypal-button-container" class="min-h-[52px] hidden"></div>
       <div id="pp-loading" class="text-center text-xs text-muted py-4 hidden">Loading secure PayPal checkout…</div>
-      <div class="mt-5 flex items-center justify-center gap-1.5 text-[11px] text-muted"><i data-lucide="lock" class="w-3 h-3"></i> Payments processed securely by PayPal</div>
+
+      <!-- Step 3: confirmation -->
+      <div id="pp-success" class="hidden text-center py-3">
+        <div class="w-12 h-12 rounded-xl bg-[#27c93f]/10 border border-[#27c93f]/25 flex items-center justify-center mx-auto mb-4 text-[#27c93f]"><i data-lucide="mail-check" class="w-6 h-6"></i></div>
+        <h4 class="text-lg font-bold mb-2">Payment received, check your email</h4>
+        <p class="text-muted text-sm leading-relaxed">We've sent a setup link to <span id="pp-success-email" class="text-accent font-medium"></span>. Your AI receptionist will be live within 1 business day.</p>
+      </div>
+
+      <div id="pp-secure-note" class="mt-5 flex items-center justify-center gap-1.5 text-[11px] text-muted"><i data-lucide="lock" class="w-3 h-3"></i> Payments processed securely by PayPal</div>
     </div>
   </div>
 
@@ -229,6 +248,7 @@
     }
 
     let paypalSdkLoaded = false;
+    let currentPlan = null, currentPrice = null, currentOrderId = null;
     function loadPayPalSdk() {
       return new Promise((resolve, reject) => {
         if (paypalSdkLoaded && window.paypal) return resolve();
@@ -243,13 +263,25 @@
     }
 
     function showPayModal(plan, price) {
+      currentPlan = plan; currentPrice = price; currentOrderId = null;
       document.getElementById('pp-plan-name').innerText = plan;
       document.getElementById('pp-plan-price').innerText = '$' + price + '/mo';
       const fee = PAYPAL_SETUP_FEES[plan];
       const note = document.getElementById('pp-setup-note');
       note.innerText = fee ? `Includes a one-time $${fee} setup fee on your first payment.` : '';
+      note.classList.remove('hidden');
+      // reset to step 1 (guest details)
+      document.getElementById('pp-guest').classList.remove('hidden');
+      const cont = document.getElementById('pp-continue');
+      cont.disabled = false; cont.innerHTML = 'Continue to payment <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-0.5"></i>';
+      document.getElementById('pp-guest-err').classList.add('hidden');
+      const bc = document.getElementById('paypal-button-container'); bc.classList.add('hidden'); bc.innerHTML = '';
+      document.getElementById('pp-loading').classList.add('hidden');
+      document.getElementById('pp-success').classList.add('hidden');
+      document.getElementById('pp-secure-note').classList.remove('hidden');
       const overlay = document.getElementById('paypal-overlay');
       overlay.classList.remove('hidden'); overlay.classList.add('flex');
+      lucide.createIcons();
     }
     function hidePayModal() {
       const overlay = document.getElementById('paypal-overlay');
@@ -260,52 +292,51 @@
       if (e.target.id === 'paypal-overlay') hidePayModal();
     });
 
-    // Called after a confirmed payment (or mock) — creates the agent + activates.
-    async function activatePurchase(plan) {
-      const { data: { session } } = await window.supabaseClient.auth.getSession();
-      if (!session) { window.location.href = 'signup.html'; return; }
-
-      if (agentName) {
-        const { error } = await window.supabaseClient.from('agents').insert([
-          { name: agentName, voice_id: agentVoice, user_id: session.user.id,
-            status: 'online',
-            valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() }
-        ]);
-        if (error) { alert('Error creating agent: ' + error.message); return; }
-      }
-      alert(`Success! You're subscribed to the ${plan} plan.`);
-      window.location.href = 'dashboard.html';
-    }
-
-    async function handlePurchase(plan, price) {
-      const { data: { session } } = await window.supabaseClient.auth.getSession();
-      if (!session) { window.location.href = 'signup.html'; return; }
-
-      // --- Already-subscribed guard: don't charge an active subscriber twice.
-      //     Reads the webhook-owned `subscriptions` table; if it doesn't exist
-      //     yet (pre-setup) the catch lets the flow proceed normally. ---
-      try {
-        const { data: sub } = await window.supabaseClient
-          .from('subscriptions')
-          .select('status')
-          .eq('user_id', session.user.id)
-          .eq('status', 'active')
-          .maybeSingle();
-        if (sub) {
-          alert("You already have an active subscription. Taking you to your dashboard.");
-          window.location.href = 'dashboard.html';
-          return;
-        }
-      } catch (e) { /* subscriptions table not set up yet -> proceed to checkout */ }
-
-      // --- Mock fallback: until PayPal is configured, keep prior behavior ---
+    // Guest checkout: no login. Pick a plan -> enter details -> pay -> "check
+    // your email". The webhook creates nothing here; it flips the order to paid
+    // and emails the onboarding link. The account is provisioned later.
+    function handlePurchase(plan, price) {
       if (!PAYPAL_CLIENT_ID || !PAYPAL_PLANS[plan]) {
-        activatePurchase(plan);
+        alert('Checkout is temporarily unavailable. Please try again shortly.');
         return;
       }
-
-      // --- Real PayPal subscription flow ---
       showPayModal(plan, price);
+    }
+
+    // Step 1 -> create a pending order, then reveal the PayPal buttons.
+    async function continueToPayment() {
+      const name = document.getElementById('pp-name').value.trim();
+      const email = document.getElementById('pp-email').value.trim();
+      const business = document.getElementById('pp-business').value.trim();
+      const err = document.getElementById('pp-guest-err');
+      const validEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
+      if (!name || !business || !validEmail) {
+        err.textContent = !validEmail ? 'Please enter a valid email address.' : 'Please enter your name and business name.';
+        err.classList.remove('hidden');
+        return;
+      }
+      err.classList.add('hidden');
+      const btn = document.getElementById('pp-continue');
+      btn.disabled = true; btn.innerHTML = 'Setting up...';
+      try {
+        const { data, error } = await window.supabaseClient.functions.invoke('create-order', {
+          body: { plan: currentPlan, name, email, business_name: business }
+        });
+        if (error || !data || !data.ok) throw new Error((data && data.reason) || 'order_failed');
+        currentOrderId = data.order_id;
+        document.getElementById('pp-guest').classList.add('hidden');
+        document.getElementById('paypal-button-container').classList.remove('hidden');
+        await renderPayPal();
+      } catch (e) {
+        btn.disabled = false; btn.innerHTML = 'Continue to payment <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-0.5"></i>';
+        lucide.createIcons();
+        err.textContent = 'Could not start checkout. Please try again.';
+        err.classList.remove('hidden');
+      }
+    }
+
+    // Step 2 -> render the PayPal subscription buttons for the created order.
+    async function renderPayPal() {
       const container = document.getElementById('paypal-button-container');
       container.innerHTML = '';
       document.getElementById('pp-loading').classList.remove('hidden');
@@ -314,18 +345,13 @@
         document.getElementById('pp-loading').classList.add('hidden');
         window.paypal.Buttons({
           style: { layout: 'vertical', color: 'blue', shape: 'pill', label: 'subscribe' },
-          // custom_id = Supabase user id, so the webhook can map the payment
-          // back to the right account and activate it server-side.
+          // custom_id = our order id, so the webhook maps the payment to this
+          // order, flips it to paid, and emails the onboarding link.
           createSubscription: (data, actions) => actions.subscription.create({
-            plan_id: PAYPAL_PLANS[plan],
-            custom_id: session.user.id
+            plan_id: PAYPAL_PLANS[currentPlan],
+            custom_id: currentOrderId
           }),
-          onApprove: (data) => {
-            // NOTE: client-side activation (stopgap). Add a PayPal webhook ->
-            // Supabase Edge Function to verify data.subscriptionID server-side
-            // before going to real scale.
-            activatePurchase(plan);
-          },
+          onApprove: () => { showCheckEmail(); },
           onError: (err) => { console.error(err); alert('Payment error. Please try again.'); }
         }).render('#paypal-button-container');
       } catch (e) {
@@ -335,18 +361,20 @@
       }
     }
 
-    async function checkAuth() {
-      // Header auth buttons are now rendered by the shared nav.js.
-      const nav = document.getElementById('nav-auth');
-      if (!nav) return;
-      const { data: { session } } = await window.supabaseClient.auth.getSession();
-      if (session) {
-        nav.innerHTML = `<a href="dashboard.html" class="bg-primary text-black px-4 py-2 rounded font-bold hover:bg-gray-200 transition-colors">Go to Console</a>`;
-      } else {
-        nav.innerHTML = `<a href="signup.html" class="bg-primary text-black px-4 py-2 rounded font-bold hover:bg-gray-200 transition-colors">Get Started</a>`;
-      }
+    // Step 3 -> confirmation. The welcome email is sent server-side by the webhook.
+    function showCheckEmail() {
+      document.getElementById('pp-guest').classList.add('hidden');
+      document.getElementById('paypal-button-container').classList.add('hidden');
+      document.getElementById('pp-loading').classList.add('hidden');
+      document.getElementById('pp-setup-note').classList.add('hidden');
+      document.getElementById('pp-secure-note').classList.add('hidden');
+      document.getElementById('pp-success-email').textContent = document.getElementById('pp-email').value.trim();
+      document.getElementById('pp-success').classList.remove('hidden');
+      lucide.createIcons();
     }
-    checkAuth();
+
+    // Header (incl. View Demo + Get Started) is rendered by the shared nav.js —
+    // the marketing site has no login, so there's no auth state to check here.
   </script>
   <script src="nav.js"></script>
 </body>

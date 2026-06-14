@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Ellevux — Provisioning</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { bg:'#000000', surface:'#0a0a0a', surface2:'#141414', border:'#1f1f1f', primary:'#ffffff', muted:'#888888', accent:'#e6e6e6' },
+        fontFamily: { sans:['Inter','sans-serif'], mono:['ui-monospace','SFMono-Regular','Menlo','Consolas','monospace'] } } }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    body { background:#000; color:#fff; font-family:'Inter',sans-serif; margin:0; min-height:100vh; }
+    .card { background:#0a0a0a; border:1px solid #1f1f1f; border-radius:16px; }
+    .inp { width:100%; box-sizing:border-box; background:#141414; border:1px solid #1f1f1f; border-radius:9px; padding:9px 12px; color:#fff; font-size:13px; outline:none; transition:border-color .18s; }
+    .inp::placeholder { color:#555; }
+    .inp:focus { border-color:rgba(138,43,226,.6); }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:7px; background:#fff; color:#000; padding:9px 16px; border-radius:9px; font-weight:600; font-size:13px; border:0; cursor:pointer; transition:transform .15s, box-shadow .15s, opacity .15s; }
+    .btn:hover { transform:translateY(-1px); box-shadow:0 8px 22px -8px rgba(255,255,255,.4); }
+    .btn:disabled { opacity:.5; cursor:default; transform:none; box-shadow:none; }
+    .btn-ghost { background:transparent; color:#aaa; border:1px solid #1f1f1f; }
+    .btn-ghost:hover { color:#fff; border-color:#333; box-shadow:none; transform:none; }
+    .pill { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:3px 9px; border-radius:99px; }
+    .row-kv { display:grid; grid-template-columns:170px 1fr; gap:10px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,.05); font-size:13px; }
+    .row-kv dt { color:#888; }
+    .row-kv dd { margin:0; color:#e6e6e6; white-space:pre-wrap; }
+    .spinner { width:24px; height:24px; border:3px solid rgba(255,255,255,.15); border-top-color:#8a2be2; border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="max-w-3xl mx-auto px-5 py-10">
+    <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center gap-2.5">
+        <span class="text-lg font-bold tracking-tight">ellevux</span>
+        <span class="text-muted text-sm font-mono">/ provisioning</span>
+      </div>
+      <button id="refresh" class="btn btn-ghost" style="display:none"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh</button>
+    </div>
+
+    <!-- GATE -->
+    <div id="gate" class="card p-7 max-w-sm mx-auto mt-16">
+      <div class="w-11 h-11 rounded-xl bg-[#8a2be2]/10 border border-[#8a2be2]/25 flex items-center justify-center mb-4 text-[#c084fc]"><i data-lucide="lock" class="w-5 h-5"></i></div>
+      <h1 class="text-lg font-bold mb-1">Admin access</h1>
+      <p class="text-muted text-sm mb-5">Enter the provisioning secret.</p>
+      <input id="secret-input" type="password" class="inp mb-3" placeholder="ADMIN_SECRET" autocomplete="off">
+      <p id="gate-err" class="text-[#ef4444] text-xs mb-3 hidden">That secret didn't work.</p>
+      <button id="unlock" class="btn w-full">Unlock</button>
+    </div>
+
+    <!-- LOADING -->
+    <div id="loading" class="hidden flex-col items-center gap-4 py-20" style="display:none;">
+      <div class="spinner"></div><p class="text-muted text-sm">Loading orders...</p>
+    </div>
+
+    <!-- CONSOLE -->
+    <div id="console" class="hidden">
+      <div id="orders" class="space-y-4"></div>
+      <div id="empty" class="hidden text-center text-muted text-sm py-16">No orders awaiting provisioning.</div>
+    </div>
+  </div>
+
+  <!-- RESULT MODAL -->
+  <div id="result" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="card p-7 max-w-md w-full">
+      <div class="w-11 h-11 rounded-xl bg-[#27c93f]/10 border border-[#27c93f]/25 flex items-center justify-center mb-4 text-[#27c93f]"><i data-lucide="check" class="w-5 h-5"></i></div>
+      <h2 class="text-lg font-bold mb-1">Provisioned</h2>
+      <p id="result-sub" class="text-muted text-sm mb-5"></p>
+      <div class="bg-surface2 border border-border rounded-xl p-4 mb-5 space-y-2 text-sm">
+        <div class="flex justify-between gap-3"><span class="text-muted">Email</span><span id="r-email" class="text-accent"></span></div>
+        <div class="flex justify-between gap-3"><span class="text-muted">Temp password</span><span id="r-pass" class="font-mono text-accent"></span></div>
+        <div class="flex justify-between gap-3"><span class="text-muted">Email sent</span><span id="r-sent"></span></div>
+      </div>
+      <button onclick="document.getElementById('result').classList.add('hidden')" class="btn w-full">Done</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const SECRET_KEY = 'ellevux_admin_secret';
+      let secret = sessionStorage.getItem(SECRET_KEY) || '';
+
+      function icons() { if (window.lucide) window.lucide.createIcons(); }
+      function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+      function humanize(k) { return k.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase()); }
+
+      async function callAdmin(body) {
+        const { data, error } = await window.supabaseClient.functions.invoke('provision-agent', {
+          body: Object.assign({ admin_secret: secret }, body)
+        });
+        if (error) throw error;       // 401/non-2xx -> treated as auth failure upstream
+        return data;
+      }
+
+      // ---- views ----
+      function showGate(badSecret) {
+        $('gate').classList.remove('hidden');
+        $('console').classList.add('hidden');
+        $('loading').style.display = 'none';
+        $('refresh').style.display = 'none';
+        $('gate-err').classList.toggle('hidden', !badSecret);
+      }
+      function showLoading() {
+        $('gate').classList.add('hidden');
+        $('console').classList.add('hidden');
+        $('loading').style.display = 'flex';
+      }
+
+      const STATUS = {
+        paid:            { label: 'Paid, awaiting intake', cls: 'bg-[#ffbd2e]/12 text-[#ffbd2e]' },
+        intake_received: { label: 'Ready to provision',    cls: 'bg-[#4169e1]/15 text-[#6f8cff]' },
+        provisioning:    { label: 'Provisioning',          cls: 'bg-[#8a2be2]/15 text-[#c084fc]' },
+        live:            { label: 'Live',                  cls: 'bg-[#27c93f]/12 text-[#27c93f]' },
+      };
+
+      function renderIntake(intake) {
+        if (!intake || typeof intake !== 'object') return '<p class="text-muted text-sm py-2">No intake submitted yet.</p>';
+        let html = '<dl class="mt-1">';
+        for (const [k, v] of Object.entries(intake)) {
+          if (k === 'faqs') {
+            if (Array.isArray(v) && v.length) {
+              const faqs = v.map(f => '<div class="mb-1.5"><span class="text-[#888]">Q:</span> ' + esc(f.q) + '<br><span class="text-[#888]">A:</span> ' + esc(f.a) + '</div>').join('');
+              html += '<div class="row-kv"><dt>FAQs</dt><dd>' + faqs + '</dd></div>';
+            }
+            continue;
+          }
+          if (v === '' || v == null) continue;
+          html += '<div class="row-kv"><dt>' + esc(humanize(k)) + '</dt><dd>' + esc(String(v)) + '</dd></div>';
+        }
+        html += '</dl>';
+        return html;
+      }
+
+      function orderCard(o) {
+        const st = STATUS[o.status] || { label: o.status, cls: 'bg-white/10 text-white' };
+        const date = (o.created_at || '').slice(0, 10);
+        const isLive = o.status === 'live';
+
+        const action = isLive
+          ? '<div class="bg-surface2 border border-border rounded-xl p-4 text-sm space-y-1.5">' +
+              '<div class="flex justify-between gap-3"><span class="text-muted">Agent number</span><span class="text-accent font-medium">' + esc(o.assigned_number || '—') + '</span></div>' +
+              (o.vapi_agent_id ? '<div class="flex justify-between gap-3"><span class="text-muted">Vapi agent</span><span class="text-accent font-mono text-xs">' + esc(o.vapi_agent_id) + '</span></div>' : '') +
+            '</div>'
+          : '<div class="bg-surface2 border border-border rounded-xl p-4">' +
+              '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-3">' +
+                '<input class="inp prov-number" placeholder="Agent phone number (Twilio) *">' +
+                '<input class="inp prov-vapi" placeholder="Vapi agent id (optional)">' +
+              '</div>' +
+              '<button class="btn prov-btn w-full"><i data-lucide="rocket" class="w-4 h-4"></i> Provision &amp; send login</button>' +
+            '</div>';
+
+        return '' +
+          '<div class="card p-5" data-order="' + esc(o.id) + '">' +
+            '<div class="flex items-start justify-between gap-4 mb-3">' +
+              '<div>' +
+                '<div class="font-bold">' + esc(o.business_name || '(no business name)') + '</div>' +
+                '<div class="text-muted text-sm">' + esc(o.email) + ' · ' + esc(o.plan_id || '?') + ' · ' + esc(date) + '</div>' +
+              '</div>' +
+              '<span class="pill ' + st.cls + '">' + esc(st.label) + '</span>' +
+            '</div>' +
+            '<details class="mb-3 group">' +
+              '<summary class="cursor-pointer list-none text-xs font-mono uppercase tracking-widest text-muted hover:text-white flex items-center gap-1.5"><i data-lucide="chevron-right" class="w-3.5 h-3.5 transition-transform group-open:rotate-90"></i> Intake answers</summary>' +
+              renderIntake(o.intake) +
+            '</details>' +
+            action +
+          '</div>';
+      }
+
+      async function loadList() {
+        showLoading();
+        try {
+          const data = await callAdmin({ action: 'list' });
+          if (!data || !data.ok) { showGate(true); return; }
+          sessionStorage.setItem(SECRET_KEY, secret);
+          const orders = data.orders || [];
+          $('gate').classList.add('hidden');
+          $('loading').style.display = 'none';
+          $('console').classList.remove('hidden');
+          $('refresh').style.display = 'inline-flex';
+          $('orders').innerHTML = orders.map(orderCard).join('');
+          $('empty').classList.toggle('hidden', orders.length > 0);
+          wireProvisionButtons(orders);
+          icons();
+        } catch (e) {
+          showGate(true);   // bad secret / unauthorized
+          icons();
+        }
+      }
+
+      function wireProvisionButtons(orders) {
+        document.querySelectorAll('[data-order]').forEach(card => {
+          const btn = card.querySelector('.prov-btn');
+          if (!btn) return;
+          const orderId = card.getAttribute('data-order');
+          btn.addEventListener('click', async () => {
+            const number = card.querySelector('.prov-number').value.trim();
+            const vapi = card.querySelector('.prov-vapi').value.trim();
+            if (!number) { card.querySelector('.prov-number').focus(); return; }
+            if (!confirm('Create the account and email login to ' + (orders.find(o => o.id === orderId)?.email || 'this customer') + '?')) return;
+            btn.disabled = true; btn.innerHTML = 'Provisioning...';
+            try {
+              const res = await callAdmin({ action: 'provision', order_id: orderId, assigned_number: number, vapi_agent_id: vapi });
+              if (!res || !res.ok) throw new Error((res && (res.detail || res.reason)) || 'failed');
+              showResult(res);
+              loadList();
+            } catch (e) {
+              btn.disabled = false; btn.innerHTML = '<i data-lucide="rocket" class="w-4 h-4"></i> Provision &amp; send login'; icons();
+              alert('Provision failed: ' + (e && e.message ? e.message : 'error'));
+            }
+          });
+        });
+      }
+
+      function showResult(res) {
+        $('result-sub').textContent = 'Account created and subscription activated.';
+        $('r-email').textContent = res.email || '';
+        $('r-pass').textContent = res.password || '';
+        $('r-sent').innerHTML = res.sent
+          ? '<span class="text-[#27c93f]">Yes</span>'
+          : '<span class="text-[#ffbd2e]">No — copy the password and send it manually</span>';
+        const m = $('result'); m.classList.remove('hidden'); m.classList.add('flex');
+        icons();
+      }
+
+      // ---- gate wiring ----
+      $('unlock').addEventListener('click', () => { secret = $('secret-input').value.trim(); if (secret) loadList(); });
+      $('secret-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('unlock').click(); });
+      $('refresh').addEventListener('click', loadList);
+      $('result').addEventListener('click', (e) => { if (e.target.id === 'result') { e.currentTarget.classList.add('hidden'); } });
+
+      // ---- boot ----
+      icons();
+      if (secret) loadList(); else showGate(false);
+    })();
+  </script>
+</body>
+</html>

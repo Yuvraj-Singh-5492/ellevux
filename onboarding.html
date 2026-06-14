@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Set up your Ellevux agent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { bg:'#000000', surface:'#0a0a0a', surface2:'#141414', border:'#1f1f1f', primary:'#ffffff', muted:'#888888', accent:'#e6e6e6' },
+        fontFamily: { sans:['Inter','sans-serif'], mono:['ui-monospace','SFMono-Regular','Menlo','Consolas','monospace'] } } }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    body { background-color:#000; color:#fff; font-family:'Inter',sans-serif; margin:0; min-height:100vh; }
+    .glow-bg { position:fixed; width:680px; height:680px; border-radius:50%; filter:blur(110px); opacity:0.16; pointer-events:none; background:#8a2be2; z-index:-1; top:-160px; left:50%; transform:translateX(-50%); }
+    .bg-grid { background-size:40px 40px; background-image:linear-gradient(to right, rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.045) 1px, transparent 1px); position:fixed; inset:0; z-index:-2; mask-image:radial-gradient(circle at top, black, transparent 75%); -webkit-mask-image:radial-gradient(circle at top, black, transparent 75%); }
+
+    /* Frosted-glass card — same treatment as the pricing plan cards */
+    .ev-card {
+      position:relative; isolation:isolate; overflow:hidden;
+      background:linear-gradient(135deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025) 55%, rgba(255,255,255,0.012));
+      backdrop-filter:blur(22px) saturate(170%); -webkit-backdrop-filter:blur(22px) saturate(170%);
+      border:1px solid rgba(255,255,255,0.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -22px 44px -22px rgba(0,0,0,0.5), 0 24px 60px -24px rgba(0,0,0,0.8);
+    }
+    .ev-card::before { content:''; position:absolute; top:0; left:0; right:0; height:46%; background:linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 60%); pointer-events:none; z-index:0; }
+    .ev-card > * { position:relative; z-index:1; }
+
+    /* Brand */
+    .ev-brand { display:inline-flex; align-items:center; gap:9px; text-decoration:none; }
+    .ev-brand img { height:26px; width:auto; display:block; }
+    .ev-brand span { font-size:18px; font-weight:600; letter-spacing:-0.02em; color:#fff; }
+
+    /* Form controls */
+    label.fld { display:block; margin-bottom:7px; font-size:12.5px; font-weight:500; color:#cfcfcf; letter-spacing:0.01em; }
+    label.fld .opt { color:#666; font-weight:400; }
+    .ev-input, .ev-select, .ev-textarea {
+      width:100%; box-sizing:border-box; background:#141414; border:1px solid #1f1f1f; border-radius:11px;
+      padding:11px 14px; color:#fff; font-size:14px; font-family:inherit; line-height:1.4; outline:none;
+      transition:border-color .18s, box-shadow .18s, background .18s;
+    }
+    .ev-input::placeholder, .ev-textarea::placeholder { color:#555; }
+    .ev-input:focus, .ev-select:focus, .ev-textarea:focus { border-color:rgba(138,43,226,0.6); box-shadow:0 0 0 3px rgba(138,43,226,0.16); background:#161616; }
+    .ev-textarea { min-height:92px; resize:vertical; }
+    .ev-select { appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 13px center; padding-right:40px; cursor:pointer; }
+    .ev-input.invalid, .ev-select.invalid, .ev-textarea.invalid { border-color:#ef4444 !important; box-shadow:0 0 0 3px rgba(239,68,68,0.14) !important; }
+
+    /* Segmented choice */
+    .seg { display:flex; flex-wrap:wrap; gap:8px; }
+    .seg-opt { position:relative; cursor:pointer; }
+    .seg-opt input { position:absolute; opacity:0; width:0; height:0; }
+    .seg-opt span { display:inline-flex; align-items:center; gap:6px; padding:9px 15px; border-radius:10px; border:1px solid #1f1f1f; background:#141414; color:#888; font-size:13px; font-weight:500; transition:color .16s, border-color .16s, background .16s; }
+    .seg-opt:hover span { color:#fff; border-color:#333; }
+    .seg-opt input:checked + span { color:#fff; border-color:rgba(138,43,226,0.6); background:rgba(138,43,226,0.12); }
+    .seg-opt input:focus-visible + span { box-shadow:0 0 0 3px rgba(138,43,226,0.3); }
+
+    /* Progress */
+    .prog-track { height:4px; background:rgba(255,255,255,0.08); border-radius:99px; overflow:hidden; }
+    .prog-fill { height:100%; background:linear-gradient(90deg,#4169e1,#8a2be2); border-radius:99px; transition:width .4s cubic-bezier(.2,.8,.2,1); }
+
+    /* Step transition */
+    .step { display:none; }
+    .step.active { display:block; animation:stepIn .35s cubic-bezier(.2,.8,.2,1); }
+    @keyframes stepIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    /* Buttons */
+    .btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#fff; color:#000; padding:11px 22px; border-radius:11px; font-weight:600; font-size:14px; border:0; cursor:pointer; transition:transform .18s, box-shadow .18s; }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 12px 32px -8px rgba(255,255,255,0.4); }
+    .btn-primary:disabled { opacity:0.55; cursor:default; transform:none; box-shadow:none; }
+    .btn-ghost { display:inline-flex; align-items:center; gap:7px; background:transparent; color:#aaa; padding:11px 18px; border-radius:11px; font-weight:500; font-size:14px; border:1px solid #1f1f1f; cursor:pointer; transition:color .18s, border-color .18s, background .18s; }
+    .btn-ghost:hover { color:#fff; border-color:#333; background:rgba(255,255,255,0.04); }
+
+    .spinner { width:30px; height:30px; border:3px solid rgba(255,255,255,0.15); border-top-color:#8a2be2; border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .step.active { animation:none; } .prog-fill { transition:none; } .btn-primary:hover { transform:none; } .spinner { animation-duration:1.6s; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="glow-bg"></div>
+
+  <!-- slim brand header -->
+  <header class="w-full flex justify-center px-5 pt-7">
+    <a href="react_landing.html" class="ev-brand" aria-label="Ellevux home">
+      <img src="logo-icon.png" alt=""><span>ellevux</span>
+    </a>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-5 pt-10 pb-24">
+
+    <!-- LOADING -->
+    <div id="state-loading" class="ev-card rounded-3xl p-12 flex flex-col items-center text-center gap-5">
+      <div class="spinner"></div>
+      <p class="text-muted text-sm">Loading your onboarding...</p>
+    </div>
+
+    <!-- ERROR / not-found / not-yet-paid -->
+    <div id="state-error" class="ev-card rounded-3xl p-10 text-center hidden">
+      <div class="w-14 h-14 rounded-2xl bg-[#ef4444]/10 border border-[#ef4444]/25 flex items-center justify-center mx-auto mb-5 text-[#ef4444]"><i data-lucide="link-2-off" class="w-6 h-6"></i></div>
+      <h1 class="text-2xl font-bold mb-2.5" id="error-title">This link isn't valid</h1>
+      <p class="text-muted text-sm max-w-md mx-auto leading-relaxed" id="error-body">We couldn't find your onboarding. Please use the link from your confirmation email, or reach out and we'll sort it.</p>
+      <a href="mailto:hello@ellevux.com" class="btn-ghost mt-7">Email hello@ellevux.com</a>
+    </div>
+
+    <!-- ALREADY DONE / in progress -->
+    <div id="state-done" class="ev-card rounded-3xl p-10 text-center hidden">
+      <div class="w-14 h-14 rounded-2xl bg-[#27c93f]/10 border border-[#27c93f]/25 flex items-center justify-center mx-auto mb-5 text-[#27c93f]"><i data-lucide="check-check" class="w-6 h-6"></i></div>
+      <h1 class="text-2xl font-bold mb-2.5">You're all set</h1>
+      <p class="text-muted text-sm max-w-md mx-auto leading-relaxed">We've got your details and we're building your agent now. You'll get an email with your login and your agent's phone number within 1 business day.</p>
+    </div>
+
+    <!-- SUCCESS (just submitted) -->
+    <div id="state-success" class="ev-card rounded-3xl p-10 text-center hidden">
+      <div class="w-14 h-14 rounded-2xl bg-[#27c93f]/10 border border-[#27c93f]/25 flex items-center justify-center mx-auto mb-5 text-[#27c93f]"><i data-lucide="party-popper" class="w-6 h-6"></i></div>
+      <h1 class="text-2xl font-bold mb-2.5">Thank you, that's everything we need</h1>
+      <p class="text-muted text-sm max-w-md mx-auto leading-relaxed">Our team is building and tuning your AI receptionist from here. We'll email your dashboard login and your agent's phone number within <span class="text-accent font-semibold">1 business day</span>.</p>
+      <p class="text-muted text-xs mt-6">You can close this page.</p>
+    </div>
+
+    <!-- WIZARD -->
+    <div id="wizard" class="hidden">
+      <div class="mb-7 text-center">
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-2.5">Let's tune <span id="wz-biz" class="bg-gradient-to-r from-white to-[#a06bff] bg-clip-text text-transparent">your agent</span></h1>
+        <p class="text-muted text-sm max-w-md mx-auto leading-relaxed">A few questions so we build a receptionist that sounds like your business and books the right jobs. Takes about 3 minutes.</p>
+      </div>
+
+      <div id="wz-resubmit" class="hidden mb-5 text-center text-xs text-[#c084fc] bg-[#8a2be2]/10 border border-[#8a2be2]/25 rounded-xl py-2.5 px-4">
+        You've already submitted this once. Saving again will update your answers.
+      </div>
+
+      <div class="ev-card rounded-3xl p-6 md:p-9">
+        <!-- progress -->
+        <div class="mb-7">
+          <div class="flex items-center justify-between mb-2.5">
+            <span class="text-[11px] font-mono uppercase tracking-widest text-muted" id="wz-stepname">Your business</span>
+            <span class="text-[11px] font-mono text-muted"><span id="wz-stepnum">1</span> / 3</span>
+          </div>
+          <div class="prog-track"><div class="prog-fill" id="wz-progress" style="width:33%"></div></div>
+        </div>
+
+        <form id="intake-form" novalidate>
+          <!-- STEP 1 — Business -->
+          <section class="step active" data-step="1">
+            <div class="grid grid-cols-1 gap-5">
+              <div>
+                <label class="fld" for="business_name">Business name</label>
+                <input class="ev-input" id="business_name" name="business_name" required placeholder="Joe's HVAC">
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label class="fld" for="industry">Industry</label>
+                  <select class="ev-select" id="industry" name="industry" required>
+                    <option value="" disabled selected>Select one...</option>
+                    <option>HVAC</option><option>Plumbing</option><option>Electrical</option>
+                    <option>Roofing</option><option>Landscaping / Lawn</option><option>Cleaning</option>
+                    <option>Pest control</option><option>Dental / Medical</option><option>Auto / Towing</option>
+                    <option>Legal</option><option>Salon / Spa</option><option>Real estate</option>
+                    <option>General contractor</option><option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="fld" for="website">Website <span class="opt">(optional)</span></label>
+                  <input class="ev-input" id="website" name="website" type="url" placeholder="https://joeshvac.com">
+                </div>
+              </div>
+              <div>
+                <label class="fld" for="hours">Business hours</label>
+                <textarea class="ev-textarea" id="hours" name="hours" required placeholder="Mon-Fri 8am-6pm, Sat 9am-1pm, closed Sunday"></textarea>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label class="fld" for="timezone">Time zone</label>
+                  <select class="ev-select" id="timezone" name="timezone" required>
+                    <option value="" disabled selected>Select one...</option>
+                    <option value="America/New_York">Eastern (ET)</option>
+                    <option value="America/Chicago">Central (CT)</option>
+                    <option value="America/Denver">Mountain (MT)</option>
+                    <option value="America/Phoenix">Arizona (no DST)</option>
+                    <option value="America/Los_Angeles">Pacific (PT)</option>
+                    <option value="America/Anchorage">Alaska (AKT)</option>
+                    <option value="Pacific/Honolulu">Hawaii (HT)</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="fld" for="service_area">Service area <span class="opt">(optional)</span></label>
+                  <input class="ev-input" id="service_area" name="service_area" placeholder="Phoenix metro, within 30 miles">
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 2 — The agent -->
+          <section class="step" data-step="2">
+            <div class="grid grid-cols-1 gap-5">
+              <div>
+                <label class="fld" for="greeting">How should the agent answer the phone?</label>
+                <input class="ev-input" id="greeting" name="greeting" required placeholder="Thanks for calling Joe's HVAC, how can I help?">
+              </div>
+              <div>
+                <label class="fld">Tone of voice</label>
+                <div class="seg">
+                  <label class="seg-opt"><input type="radio" name="tone" value="Professional" checked><span>Professional</span></label>
+                  <label class="seg-opt"><input type="radio" name="tone" value="Warm & friendly"><span>Warm &amp; friendly</span></label>
+                  <label class="seg-opt"><input type="radio" name="tone" value="Energetic"><span>Energetic</span></label>
+                  <label class="seg-opt"><input type="radio" name="tone" value="Calm & reassuring"><span>Calm &amp; reassuring</span></label>
+                </div>
+              </div>
+              <div>
+                <label class="fld">Voice preference</label>
+                <div class="seg">
+                  <label class="seg-opt"><input type="radio" name="voice" value="No preference" checked><span>No preference</span></label>
+                  <label class="seg-opt"><input type="radio" name="voice" value="Female"><span>Female</span></label>
+                  <label class="seg-opt"><input type="radio" name="voice" value="Male"><span>Male</span></label>
+                </div>
+              </div>
+              <div>
+                <label class="fld" for="services">What services do you offer?</label>
+                <textarea class="ev-textarea" id="services" name="services" required placeholder="Repairs, installations, maintenance plans, emergency call-outs..."></textarea>
+              </div>
+              <div>
+                <label class="fld">When a caller wants to book, the agent should...</label>
+                <div class="seg">
+                  <label class="seg-opt"><input type="radio" name="booking_policy" value="Book directly into our calendar" checked><span>Book into our calendar</span></label>
+                  <label class="seg-opt"><input type="radio" name="booking_policy" value="Take details, we follow up"><span>Take details, we follow up</span></label>
+                  <label class="seg-opt"><input type="radio" name="booking_policy" value="A mix"><span>A mix</span></label>
+                </div>
+              </div>
+              <div>
+                <label class="fld">Should the agent quote prices?</label>
+                <div class="seg">
+                  <label class="seg-opt"><input type="radio" name="pricing_policy" value="Never quote prices" checked><span>Never quote</span></label>
+                  <label class="seg-opt"><input type="radio" name="pricing_policy" value="Share starting prices"><span>Share starting prices</span></label>
+                  <label class="seg-opt"><input type="radio" name="pricing_policy" value="Share full price list"><span>Share full list</span></label>
+                </div>
+                <textarea class="ev-textarea mt-3" name="pricing_details" placeholder="If you'd like it to share prices, list them here (e.g. service call $89, drain clear from $150)..."></textarea>
+              </div>
+              <div>
+                <label class="fld" for="caller_questions">What should the agent ask every caller?</label>
+                <textarea class="ev-textarea" id="caller_questions" name="caller_questions" placeholder="Name, phone number, address, what's the issue, how urgent is it"></textarea>
+              </div>
+              <div>
+                <label class="fld">Common questions &amp; answers <span class="opt">(optional, helps the agent sound informed)</span></label>
+                <div id="faq-list" class="space-y-3"></div>
+                <button type="button" id="faq-add" class="btn-ghost mt-3 !py-2 !px-3.5 text-[13px]"><i data-lucide="plus" class="w-4 h-4"></i> Add a question</button>
+              </div>
+              <div>
+                <label class="fld" for="guardrails">Anything the agent must never do or say? <span class="opt">(optional)</span></label>
+                <textarea class="ev-textarea" id="guardrails" name="guardrails" placeholder="Never give legal advice, never promise same-day service, never discuss competitors..."></textarea>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 3 — Booking & handoff -->
+          <section class="step" data-step="3">
+            <div class="grid grid-cols-1 gap-5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label class="fld" for="calendar">Which calendar should it book into?</label>
+                  <select class="ev-select" id="calendar" name="calendar">
+                    <option>Google Calendar</option><option>Calendly</option><option>Acuity</option>
+                    <option>Outlook / Microsoft</option><option>Other</option><option>Help me set this up</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="fld" for="area_code">Preferred area code <span class="opt">(optional)</span></label>
+                  <input class="ev-input" id="area_code" name="area_code" inputmode="numeric" maxlength="3" placeholder="602">
+                </div>
+              </div>
+              <div>
+                <label class="fld" for="appointment_types">Appointment types &amp; how long they take <span class="opt">(optional)</span></label>
+                <textarea class="ev-textarea" id="appointment_types" name="appointment_types" placeholder="Diagnostic 1hr, install 3-4hrs, maintenance 45min..."></textarea>
+              </div>
+              <div>
+                <label class="fld">Do you take emergency / after-hours calls?</label>
+                <div class="seg">
+                  <label class="seg-opt"><input type="radio" name="takes_emergency" value="Yes" checked><span>Yes</span></label>
+                  <label class="seg-opt"><input type="radio" name="takes_emergency" value="No"><span>No</span></label>
+                </div>
+                <input class="ev-input mt-3" name="emergency_number" type="tel" placeholder="If yes, transfer urgent calls to this number (optional)">
+              </div>
+
+              <div class="h-px bg-white/10 my-1"></div>
+              <p class="text-[11px] font-mono uppercase tracking-widest text-muted -mb-1">Where we send your login</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label class="fld" for="owner_name">Your name</label>
+                  <input class="ev-input" id="owner_name" name="owner_name" required placeholder="Joe Marino">
+                </div>
+                <div>
+                  <label class="fld" for="owner_phone">Your mobile</label>
+                  <input class="ev-input" id="owner_phone" name="owner_phone" type="tel" required placeholder="(602) 555-0188">
+                </div>
+              </div>
+              <div>
+                <label class="fld" for="owner_email">Your email <span class="opt">(your dashboard login + agent number go here)</span></label>
+                <input class="ev-input" id="owner_email" name="owner_email" type="email" required placeholder="joe@joeshvac.com">
+              </div>
+              <div>
+                <label class="fld" for="notes">Anything else we should know? <span class="opt">(optional)</span></label>
+                <textarea class="ev-textarea" id="notes" name="notes" placeholder="Anything that makes your business different..."></textarea>
+              </div>
+            </div>
+          </section>
+
+          <!-- nav -->
+          <div class="flex items-center justify-between mt-8 pt-6 border-t border-white/10">
+            <button type="button" id="wz-back" class="btn-ghost" style="visibility:hidden"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+            <button type="button" id="wz-next" class="btn-primary">Continue <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+            <button type="submit" id="wz-submit" class="btn-primary hidden">Submit &amp; build my agent <i data-lucide="check" class="w-4 h-4"></i></button>
+          </div>
+        </form>
+      </div>
+
+      <p class="text-center text-muted text-xs mt-6">Need a hand? Email <a href="mailto:hello@ellevux.com" class="text-accent underline underline-offset-2 hover:text-white">hello@ellevux.com</a></p>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const params = new URLSearchParams(location.search);
+      const token = params.get('token');
+      const preview = params.has('preview');   // ?preview -> render the form with no backend (for eyeballing the design)
+
+      const STATES = ['state-loading','state-error','state-done','state-success','wizard'];
+      function show(state) { STATES.forEach(s => $(s).classList.toggle('hidden', s !== state)); refreshIcons(); }
+      function refreshIcons() { if (window.lucide) window.lucide.createIcons(); }
+
+      function showError(reason) {
+        const map = {
+          pending_payment: ["We haven't received your payment yet", "Once your payment clears you'll get an email with your onboarding link. If you've already paid, give it a minute and refresh, or reach out below."],
+          not_found:       ["This link isn't valid", "We couldn't find your onboarding. Please use the link from your confirmation email, or reach out and we'll sort it."],
+          missing_token:   ["This link is incomplete", "It looks like part of your onboarding link is missing. Please open the full link from your confirmation email."],
+        };
+        const m = map[reason] || map.not_found;
+        $('error-title').textContent = m[0];
+        $('error-body').textContent = m[1];
+        show('state-error');
+      }
+
+      // ---- Edge Function call (reuses window.supabaseClient -> auto anon key + URL) ----
+      async function callFn(body) {
+        if (!window.supabaseClient || !window.supabaseClient.functions) {
+          throw new Error('client unavailable');
+        }
+        const { data, error } = await window.supabaseClient.functions.invoke('submit-intake', { body });
+        if (error) throw error;
+        return data;
+      }
+
+      // ---- FAQ repeatable rows ----
+      function addFaqRow(q, a) {
+        const row = document.createElement('div');
+        row.className = 'faq-row grid grid-cols-1 sm:grid-cols-[1fr_1.4fr_auto] gap-2.5 items-start';
+        row.innerHTML =
+          '<input class="ev-input faq-q" placeholder="Do you offer free estimates?" value="' + (q ? esc(q) : '') + '">' +
+          '<input class="ev-input faq-a" placeholder="Yes, estimates are free." value="' + (a ? esc(a) : '') + '">' +
+          '<button type="button" class="btn-ghost faq-del !px-3 !py-2.5" aria-label="Remove"><i data-lucide="trash-2" class="w-4 h-4"></i></button>';
+        $('faq-list').appendChild(row);
+        row.querySelector('.faq-del').addEventListener('click', () => { row.remove(); });
+        refreshIcons();
+      }
+      function esc(s) { return String(s).replace(/"/g, '&quot;'); }
+
+      // ---- Wizard ----
+      let step = 1;
+      const TOTAL = 3;
+      const STEP_NAMES = { 1: 'Your business', 2: 'Your agent', 3: 'Booking & handoff' };
+
+      function render() {
+        document.querySelectorAll('.step').forEach(s => s.classList.toggle('active', +s.dataset.step === step));
+        $('wz-progress').style.width = Math.round((step / TOTAL) * 100) + '%';
+        $('wz-stepnum').textContent = step;
+        $('wz-stepname').textContent = STEP_NAMES[step];
+        $('wz-back').style.visibility = step === 1 ? 'hidden' : 'visible';
+        $('wz-next').classList.toggle('hidden', step === TOTAL);
+        $('wz-submit').classList.toggle('hidden', step !== TOTAL);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        refreshIcons();
+      }
+
+      function validateStep() {
+        const active = document.querySelector('.step.active');
+        let ok = true, firstBad = null;
+        active.querySelectorAll('[required]').forEach(el => {
+          const valid = (el.value || '').trim() !== '' && el.checkValidity();
+          el.classList.toggle('invalid', !valid);
+          if (!valid && !firstBad) firstBad = el;
+          if (!valid) ok = false;
+        });
+        if (firstBad) firstBad.focus();
+        return ok;
+      }
+
+      // clear invalid styling as the user fixes a field
+      document.addEventListener('input', (e) => {
+        if (e.target.classList && e.target.classList.contains('invalid')) e.target.classList.remove('invalid');
+      });
+
+      $('wz-next').addEventListener('click', () => { if (validateStep() && step < TOTAL) { step++; render(); } });
+      $('wz-back').addEventListener('click', () => { if (step > 1) { step--; render(); } });
+      $('faq-add').addEventListener('click', () => addFaqRow());
+
+      // ---- Submit ----
+      $('intake-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!validateStep()) return;
+        const btn = $('wz-submit');
+        btn.disabled = true; btn.innerHTML = 'Submitting...';
+
+        const fd = new FormData($('intake-form'));
+        const intake = {};
+        fd.forEach((v, k) => { intake[k] = typeof v === 'string' ? v.trim() : v; });
+        intake.faqs = [...document.querySelectorAll('.faq-row')].map(r => ({
+          q: r.querySelector('.faq-q').value.trim(),
+          a: r.querySelector('.faq-a').value.trim()
+        })).filter(f => f.q || f.a);
+
+        if (preview) { show('state-success'); return; }   // design preview: don't write
+
+        try {
+          const res = await callFn({ action: 'submit', token, intake });
+          if (res && res.ok) { show('state-success'); }
+          else { throw new Error((res && res.reason) || 'failed'); }
+        } catch (err) {
+          btn.disabled = false; btn.innerHTML = 'Submit &amp; build my agent';
+          alert("Something went wrong saving your answers. Please try again, or email hello@ellevux.com.\n\n(" + (err && err.message ? err.message : 'error') + ")");
+        }
+      });
+
+      // ---- Boot ----
+      async function boot() {
+        if (preview) {   // eyeball the design with no backend
+          $('wz-biz').textContent = 'your agent';
+          addFaqRow();
+          show('wizard');
+          render();
+          return;
+        }
+        if (!token) { showError('missing_token'); return; }
+        try {
+          const data = await callFn({ action: 'fetch', token });
+          if (!data || !data.ok) { showError((data && data.reason) || 'not_found'); return; }
+
+          if (data.status === 'pending_payment') { showError('pending_payment'); return; }
+          if (data.status === 'provisioning' || data.status === 'live') { show('state-done'); return; }
+
+          // paid (or intake_received -> allow update)
+          if (data.business_name) { $('business_name').value = data.business_name; $('wz-biz').textContent = data.business_name; }
+          if (data.email) { $('owner_email').value = data.email; }
+          if (data.status === 'intake_received') $('wz-resubmit').classList.remove('hidden');
+
+          addFaqRow(); // start with one empty FAQ row
+          show('wizard');
+          render();
+        } catch (err) {
+          showError('not_found');
+        }
+      }
+
+      refreshIcons();
+      boot();
+    })();
+  </script>
+</body>
+</html>

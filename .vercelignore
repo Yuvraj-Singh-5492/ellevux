@@ -10,6 +10,9 @@ supabase/
 shadcn-version/
 iphone-preview.html
 
+# internal provisioning console (run locally; gated by ADMIN_SECRET)
+admin.html
+
 # source archives / backups (also gitignored)
 *.zip
 *.bak
