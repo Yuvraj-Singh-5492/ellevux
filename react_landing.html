@@ -33,9 +33,10 @@
   
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- PINNED: @babel/standalone must stay on 7.x — Babel 8 (released 2026-06-16) breaks the in-browser JSX transpile and blanks the page. Do NOT change back to @latest. -->
+  <script src="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"></script>
   <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@1.20.0/dist/umd/lucide.min.js"></script>
   <!-- ES-module three for the scroll-morph hero overlay (GLTFLoader/MeshSurfaceSampler). The old UMD three.min.js
        was removed to cut load — the six small mockup 3D accents now fall back to their lightweight CSS placeholders. -->
   <script type="importmap">
